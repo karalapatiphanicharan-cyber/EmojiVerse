@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, Download, Trash2, Dices, Check } from 'lucide-react';
+import { Copy, Download, Trash2, Dices, Check, Save } from 'lucide-react';
 import { downloadAsTxt, downloadAsPng } from '../../utils/downloadHelper';
 import { useToast } from '../../context/ToastContext';
 import { matrixToText } from '../../utils/emojiGenerator';
 
-const ExportControls = ({ art, onClear, onRandomize }) => {
+const ExportControls = ({ art, onClear, onRandomize, onSave }) => {
   const [copied, setCopied] = useState(false);
   const { showToast } = useToast();
 
@@ -70,6 +70,15 @@ const ExportControls = ({ art, onClear, onRandomize }) => {
       </motion.button>
 
       <div className="w-px h-8 bg-gray-200 mx-2 hidden sm:block"></div>
+
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={onSave}
+        className="flex items-center gap-2 px-6 py-3 bg-green-50 text-green-600 rounded-xl font-bold shadow-skeuo-raised"
+      >
+        <Save size={18} /> Save Design
+      </motion.button>
 
       <motion.button
         whileHover={{ scale: 1.05 }}
