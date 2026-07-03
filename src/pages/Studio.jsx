@@ -16,6 +16,16 @@ import BrushToolbar from '../components/painter/BrushToolbar';
 import PaintControls from '../components/painter/PaintControls';
 import AnimationStudio from '../components/animation/AnimationStudio';
 
+// Phase 4 Components
+import ImageUploader from '../components/converter/ImageUploader';
+import ImagePreview from '../components/converter/ImagePreview';
+import BeforeAfterViewer from '../components/converter/BeforeAfterViewer';
+import ConversionControls from '../components/converter/ConversionControls';
+import EmojiPalette from '../components/converter/EmojiPalette';
+import { useImageConverter } from '../hooks/useImageConverter';
+import { downloadConversionAsPng, downloadConversionAsTxt, copyToClipboard } from '../utils/imageExport';
+import { Download, Copy, Save, Trash2, Share2 } from 'lucide-react';
+
 import { generateMultiEmojiArt } from '../utils/multiEmojiGenerator';
 import { applyFontStyle } from '../utils/fontStyles';
 import { useHistory } from '../hooks/useHistory';
@@ -23,7 +33,7 @@ import { useEmojiPainter } from '../hooks/useEmojiPainter';
 import { saveCreation } from '../utils/saveManager';
 
 const Studio = () => {
-  const [activeTab, setActiveTab] = useState('text'); // 'text', 'painter', or 'animator'
+  const [activeTab, setActiveTab] = useState('text'); // 'text', 'painter', 'animator', or 'converter'
   const { showToast } = useToast();
 
   // Settings State
@@ -47,6 +57,9 @@ const Studio = () => {
   const emptyGrid = useMemo(() => Array.from({ length: 30 }, () => Array(50).fill("")), []);
   const paintHistory = useHistory(emptyGrid);
   const painter = useEmojiPainter(emptyGrid, paintHistory);
+
+  // Image Converter Hook
+  const converter = useImageConverter();
 
   // Computed art for Text Painter
   const art = textHistory.state;
@@ -86,14 +99,28 @@ const Studio = () => {
   }, [text, selectedEmojis, settings, textHistory, showToast]);
 
   const handleSave = async () => {
-    const currentArt = activeTab === 'text' ? textHistory.state : paintHistory.state;
+    let currentArt, name, icon;
+
+    if (activeTab === 'text') {
+      currentArt = textHistory.state;
+      name = `Text: ${text}`;
+      icon = '🎨';
+    } else if (activeTab === 'painter') {
+      currentArt = paintHistory.state;
+      name = `Drawing ${new Date().toLocaleTimeString()}`;
+      icon = '🖌️';
+    } else if (activeTab === 'converter') {
+      currentArt = converter.resultMatrix;
+      name = "📸 Conversion";
+      icon = '📸';
+    }
+
     if (!currentArt || (activeTab === 'painter' && currentArt.every(row => row.every(cell => cell === "")))) {
       showToast("Create something first ✨");
       return;
     }
 
-    const name = activeTab === 'text' ? `Text: ${text}` : `Drawing ${new Date().toLocaleTimeString()}`;
-    const success = saveCreation(name, currentArt, activeTab === 'text' ? '🎨' : '🖌️');
+    const success = saveCreation(name, currentArt, icon);
 
     if (success) {
       showToast("💾 Saved to Gallery!");
@@ -143,6 +170,12 @@ const Studio = () => {
     }
   };
 
+  const handleCopyConversion = async () => {
+    if (!converter.resultMatrix) return;
+    const success = await copyToClipboard(converter.resultMatrix);
+    if (success) showToast("📋 Copied to clipboard!");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -153,34 +186,29 @@ const Studio = () => {
         <ToolPanel>
           <div className="space-y-8">
             <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl shadow-inner">
-              <button
-                onClick={() => setActiveTab('text')}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === 'text' ? 'bg-white shadow-skeuo-raised' : 'text-gray-400'}`}
-              >
-                Text
-              </button>
-              <button
-                onClick={() => setActiveTab('painter')}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === 'painter' ? 'bg-white shadow-skeuo-raised' : 'text-gray-400'}`}
-              >
-                Painter
-              </button>
-              <button
-                onClick={() => setActiveTab('animator')}
-                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === 'animator' ? 'bg-white shadow-skeuo-raised' : 'text-gray-400'}`}
-              >
-                Animator
-              </button>
+              {['text', 'painter', 'animator', 'converter'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex-1 py-2 text-[10px] font-black uppercase rounded-xl transition-all ${activeTab === tab ? 'bg-white shadow-skeuo-raised text-gray-900' : 'text-gray-400'}`}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
 
             {activeTab === 'painter' && (
               <BrushToolbar activeTool={painter.tool} setTool={painter.setTool} />
             )}
 
-            <EmojiPicker
-              selectedEmoji={selectedEmojis[selectedEmojis.length - 1]}
-              onSelect={onEmojiSelect}
-            />
+            {activeTab === 'converter' ? (
+              <ImageUploader onUpload={converter.handleUpload} currentImage={converter.originalUrl} />
+            ) : (
+              <EmojiPicker
+                selectedEmoji={selectedEmojis[selectedEmojis.length - 1]}
+                onSelect={onEmojiSelect}
+              />
+            )}
 
             {activeTab === 'text' && (
               <MultiEmojiTray
@@ -188,6 +216,17 @@ const Studio = () => {
                 onRemove={handleRemoveEmoji}
                 onAdd={() => {}}
               />
+            )}
+
+            {activeTab === 'converter' && converter.originalUrl && (
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={converter.clearImage}
+                className="w-full flex items-center justify-center gap-2 py-4 bg-red-50 text-red-500 rounded-2xl font-bold shadow-skeuo-raised hover:bg-red-100 transition-all text-sm"
+              >
+                <Trash2 size={16} /> Eject Photo
+              </motion.button>
             )}
           </div>
         </ToolPanel>
@@ -257,7 +296,62 @@ const Studio = () => {
             />
           )}
 
-          {activeTab !== 'animator' && (
+          {activeTab === 'converter' && (
+            <div className="space-y-8">
+              <div className="bg-white/50 p-4 rounded-[48px] shadow-skeuo-raised border border-white/50">
+                <ImagePreview
+                  isProcessing={converter.isProcessing}
+                  progress={converter.progress}
+                  matrix={converter.resultMatrix}
+                  bgStyle={settings.bgStyle}
+                />
+              </div>
+
+              {converter.resultMatrix && !converter.isProcessing && (
+                <div className="flex flex-wrap gap-4 justify-center">
+                  <button
+                    onClick={() => downloadConversionAsPng('emoji-conversion-output')}
+                    className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-bold shadow-skeuo-raised hover:bg-indigo-700 active:shadow-skeuo-pressed transition-all"
+                  >
+                    <Download size={20} /> PNG
+                  </button>
+                  <button
+                    onClick={() => downloadConversionAsTxt(converter.resultMatrix)}
+                    className="flex items-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-2xl font-bold shadow-skeuo-raised hover:bg-gray-50 active:shadow-skeuo-pressed transition-all"
+                  >
+                    <Download size={20} /> TXT
+                  </button>
+                  <button
+                    onClick={handleCopyConversion}
+                    className="flex items-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-2xl font-bold shadow-skeuo-raised hover:bg-gray-50 active:shadow-skeuo-pressed transition-all"
+                  >
+                    <Copy size={20} /> Copy
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-2xl font-bold shadow-skeuo-raised hover:bg-emerald-600 active:shadow-skeuo-pressed transition-all"
+                  >
+                    <Save size={20} /> Gallery
+                  </button>
+                </div>
+              )}
+
+              {converter.originalUrl && converter.resultMatrix && !converter.isProcessing && (
+                <div className="bg-white/80 p-6 rounded-[32px] shadow-skeuo-raised border border-white/50 space-y-4">
+                  <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                    <Share2 size={14} /> Side-by-Side Comparison
+                  </h3>
+                  <BeforeAfterViewer
+                    original={converter.originalUrl}
+                    matrix={converter.resultMatrix}
+                    bgStyle={settings.bgStyle}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab !== 'animator' && activeTab !== 'converter' && (
             <ExportControls
               art={activeTab === 'text' ? textHistory.state : paintHistory.state}
               onClear={activeTab === 'text' ? () => textHistory.reset([]) : () => paintHistory.reset(emptyGrid)}
@@ -282,11 +376,22 @@ const Studio = () => {
               <PaintControls brushSize={painter.brushSize} setBrushSize={painter.setBrushSize} />
             )}
 
-            <StyleControls
-              settings={settings}
-              setSettings={setSettings}
-              isPainter={activeTab === 'painter'}
-            />
+            {activeTab === 'converter' ? (
+              <>
+                <ConversionControls settings={converter.settings} setSettings={converter.setSettings} />
+                <div className="h-px bg-gray-100" />
+                <EmojiPalette
+                  currentPalette={converter.settings.palette}
+                  onSelect={(p) => converter.setSettings({ ...converter.settings, palette: p })}
+                />
+              </>
+            ) : (
+              <StyleControls
+                settings={settings}
+                setSettings={setSettings}
+                isPainter={activeTab === 'painter'}
+              />
+            )}
           </div>
         </SettingsPanel>
       </div>
