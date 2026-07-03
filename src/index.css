@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-studio-bg text-gray-800 font-sans antialiased;
+  }
+}
+
+@layer components {
+  .skeuo-raised {
+    @apply bg-studio-surface shadow-skeuo-raised rounded-2xl;
+  }
+
+  .skeuo-pressed {
+    @apply bg-studio-surface shadow-skeuo-pressed rounded-2xl;
+  }
+
+  .skeuo-card {
+    @apply bg-studio-surface shadow-skeuo-card rounded-3xl;
+  }
+
+  .skeuo-inner {
+    @apply bg-studio-surface shadow-skeuo-inner rounded-xl;
+  }
+
+  /* Paper texture effect */
+  .paper-texture {
+    background-image: url('./assets/textures/paper.png');
+    background-color: #ffffff;
+    /* Adding a CSS fallback noise in case the image is just a placeholder */
+    background-image:
+      linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)),
+      url('./assets/textures/paper.png');
+  }
+}
+
+/* Custom scrollbar for skeuomorphic feel */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-studio-surface shadow-inner rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 border-4 border-studio-surface rounded-full;
+}
