@@ -2,15 +2,39 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Copy, Download, Trash2, Dices, Check } from 'lucide-react';
 import { downloadAsTxt, downloadAsPng } from '../../utils/downloadHelper';
+import { useToast } from '../../context/ToastContext';
 
 const ExportControls = ({ art, onClear, onRandomize }) => {
   const [copied, setCopied] = useState(false);
+  const { showToast } = useToast();
 
   const handleCopy = () => {
-    if (!art) return;
+    if (!art) {
+      showToast("🎨 Create art first");
+      return;
+    }
     navigator.clipboard.writeText(art);
     setCopied(true);
+    showToast("📋 Copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownloadTxt = () => {
+    if (!art) {
+      showToast("📥 Nothing to download");
+      return;
+    }
+    downloadAsTxt(art);
+    showToast("📄 Downloading TXT...");
+  };
+
+  const handleDownloadPng = () => {
+    if (!art) {
+      showToast("🖼️ Generate emoji art first");
+      return;
+    }
+    downloadAsPng('emoji-canvas');
+    showToast("📸 Capturing art...");
   };
 
   return (
@@ -19,10 +43,7 @@ const ExportControls = ({ art, onClear, onRandomize }) => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={handleCopy}
-        disabled={!art}
-        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-skeuo-raised transition-all ${
-          art ? 'bg-white text-gray-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-        }`}
+        className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-skeuo-raised transition-all bg-white text-gray-700"
       >
         {copied ? <><Check size={18} className="text-green-500" /> Copied</> : <><Copy size={18} /> Copy Text</>}
       </motion.button>
@@ -30,11 +51,8 @@ const ExportControls = ({ art, onClear, onRandomize }) => {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => downloadAsTxt(art)}
-        disabled={!art}
-        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-skeuo-raised transition-all ${
-          art ? 'bg-white text-gray-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-        }`}
+        onClick={handleDownloadTxt}
+        className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-skeuo-raised transition-all bg-white text-gray-700"
       >
         <Download size={18} /> TXT
       </motion.button>
@@ -42,11 +60,8 @@ const ExportControls = ({ art, onClear, onRandomize }) => {
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={() => downloadAsPng('emoji-canvas')}
-        disabled={!art}
-        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-skeuo-raised transition-all ${
-          art ? 'bg-white text-gray-700' : 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
-        }`}
+        onClick={handleDownloadPng}
+        className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-skeuo-raised transition-all bg-white text-gray-700"
       >
         <Download size={18} /> PNG
       </motion.button>

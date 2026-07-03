@@ -6,6 +6,8 @@ import Home from './pages/Home';
 import Studio from './pages/Studio';
 import Gallery from './pages/Gallery';
 import About from './pages/About';
+import { ToastProvider } from './context/ToastContext';
+import Toast from './components/common/Toast';
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -24,12 +26,14 @@ const AnimatedRoutes = () => {
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-studio-bg selection:bg-studio-accent/30">
-        <Navbar />
-        <main>
-          <AnimatedRoutes />
-        </main>
+    <ToastProvider>
+      <Router>
+        <div className="min-h-screen bg-studio-bg selection:bg-studio-accent/30">
+          <Navbar />
+          <Toast />
+          <main>
+            <AnimatedRoutes />
+          </main>
 
         {/* Decorative elements */}
         <div className="fixed bottom-6 right-6 z-50">
@@ -40,8 +44,9 @@ function App() {
             </div>
           </div>
         </div>
-      </div>
-    </Router>
+        </div>
+      </Router>
+    </ToastProvider>
   );
 }
 

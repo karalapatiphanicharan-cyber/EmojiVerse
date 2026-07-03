@@ -1,4 +1,4 @@
-import { EMOJI_ALPHABET } from './emojiAlphabet';
+import { EMOJI_ALPHABET } from './emojiAlphabet.js';
 
 /**
  * Generates emoji art from text.
@@ -11,49 +11,45 @@ export const generateEmojiArt = (text, emoji, options = {}) => {
   const {
     letterSpacing = 1,
     lineHeight = 1,
-    density = 'normal' // normal, compact, wide
+    density = 'normal'
   } = options;
 
-  const upperText = text.toUpperCase();
-  const characters = upperText.split('');
+  if (!text) return "";
 
-  // Height is always 5 for our patterns
+  const upperText = text.toUpperCase();
+  const characters = upperText.split('').filter(char => EMOJI_ALPHABET[char]);
+
+  if (characters.length === 0) return "";
+
   const height = 5;
-  let result = [];
+  const result = [];
+
+  const cellSpace = "  ";
 
   for (let row = 0; row < height; row++) {
     let line = "";
-    for (let i = 0; i < characters.length; i++) {
-      const char = characters[i];
-      const pattern = EMOJI_ALPHABET[char] || EMOJI_ALPHABET[' '];
+    for (const char of characters) {
+      const pattern = EMOJI_ALPHABET[char];
       const patternRow = pattern[row];
 
       for (let j = 0; j < patternRow.length; j++) {
         const isFilled = patternRow[j] === '1';
+        line += isFilled ? emoji : cellSpace;
 
-        if (isFilled) {
-          line += emoji;
-          if (density === 'wide') line += "  ";
-        } else {
-          // Use appropriate number of spaces to match emoji width (approx 2 spaces)
-          const space = "  ";
-          line += space;
-          if (density === 'wide') line += "  ";
-        }
-
-        if (density === 'compact' && j < patternRow.length - 1) {
-          // No extra space between emoji blocks in compact mode
+        if (density === 'wide') {
+          line += "  ";
         }
       }
 
-      // Add letter spacing
-      line += " ".repeat(letterSpacing * 2);
+      line += "  ".repeat(letterSpacing);
     }
+
     result.push(line);
 
-    // Add vertical spacing
-    for (let lh = 0; lh < lineHeight - 1; lh++) {
-      result.push("");
+    if (row < height - 1) {
+      for (let lh = 0; lh < lineHeight - 1; lh++) {
+        result.push("");
+      }
     }
   }
 
