@@ -1,19 +1,139 @@
-import React from 'react';
-import ToolPanel from '../components/studio/ToolPanel';
-import CanvasBoard from '../components/studio/CanvasBoard';
-import SettingsPanel from '../components/studio/SettingsPanel';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import ToolPanel from '../components/studio/ToolPanel';
+import SettingsPanel from '../components/studio/SettingsPanel';
+import EmojiPicker from '../components/studio/EmojiPicker';
+import TextInputPanel from '../components/studio/TextInputPanel';
+import EmojiOutput from '../components/studio/EmojiOutput';
+import ExportControls from '../components/studio/ExportControls';
+import StyleControls from '../components/studio/StyleControls';
+import { generateEmojiArt } from '../utils/emojiGenerator';
 
 const Studio = () => {
+  // Main State
+  const [text, setText] = useState('');
+  const [selectedEmoji, setSelectedEmoji] = useState('🔥');
+  const [art, setArt] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Settings State
+  const [settings, setSettings] = useState({
+    emojiSize: 'medium',
+    letterSpacing: 1,
+    lineHeight: 1,
+    bgStyle: 'paper',
+    density: 'normal'
+  });
+
+  // Generator Logic
+  const handleGenerate = useCallback(() => {
+    if (!text.trim()) {
+      alert("Enter some text first ✏️");
+      return;
+    }
+    if (!selectedEmoji) {
+      alert("Choose your emoji magic ✨");
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Simulate generation delay for "magic" feeling
+    setTimeout(() => {
+      const generatedArt = generateEmojiArt(text, selectedEmoji, settings);
+      setArt(generatedArt);
+      setIsLoading(false);
+
+      // Celebration!
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#3b82f6', '#6366f1', '#f43f5e', '#fbbf24']
+      });
+    }, 800);
+  }, [text, selectedEmoji, settings]);
+
+  const handleClear = () => {
+    setText('');
+    setArt('');
+  };
+
+  const handleRandomize = () => {
+    const emojis = ['😀', '🔥', '🚀', '🌈', '💎', '🌸', '🤖', '🐱', '⭐'];
+    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+    const bgStyles = ['paper', 'wood', 'dark', 'glass'];
+    const randomBg = bgStyles[Math.floor(Math.random() * bgStyles.length)];
+
+    setSelectedEmoji(randomEmoji);
+    setSettings(prev => ({ ...prev, bgStyle: randomBg }));
+
+    if (text) {
+      handleGenerate();
+    }
+  };
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // CTRL + ENTER to generate
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        handleGenerate();
+      }
+      // CTRL + C to copy (handled by browser usually, but can be customized)
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleGenerate]);
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="pt-24 min-h-screen flex"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="pt-24 min-h-screen flex flex-col lg:flex-row bg-[#fdfbf7]"
     >
-      <ToolPanel />
-      <CanvasBoard />
-      <SettingsPanel />
+      {/* Left Panel - Emoji Selection */}
+      <ToolPanel>
+        <EmojiPicker
+          selectedEmoji={selectedEmoji}
+          onSelect={setSelectedEmoji}
+        />
+      </ToolPanel>
+
+      {/* Center Area - Canvas */}
+      <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-y-auto">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <TextInputPanel
+            text={text}
+            setText={setText}
+            onGenerate={handleGenerate}
+            isLoading={isLoading}
+          />
+
+          <EmojiOutput
+            art={art}
+            isLoading={isLoading}
+            bgStyle={settings.bgStyle}
+            emojiSize={settings.emojiSize}
+          />
+
+          <ExportControls
+            art={art}
+            onClear={handleClear}
+            onRandomize={handleRandomize}
+          />
+        </div>
+      </main>
+
+      {/* Right Panel - Settings */}
+      <SettingsPanel>
+        <StyleControls
+          settings={settings}
+          setSettings={setSettings}
+        />
+      </SettingsPanel>
     </motion.div>
   );
 };
