@@ -20,8 +20,8 @@ export const roadmap = [
   {
     phase: "Phase 4",
     title: "Image Emoji Converter",
-    description: "Convert real-world photos into complex emoji art automatically.",
-    status: "planned"
+    description: "AI-style pixel art converter that transforms any photo into an emoji masterpiece.",
+    status: "completed"
   },
   {
     phase: "Phase 5",

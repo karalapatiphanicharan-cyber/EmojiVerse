@@ -9,6 +9,8 @@ import AnimationPreview from '../components/animation/AnimationPreview';
 const GalleryCard = ({ id, name, thumbnail, date, emojiData, onDelete }) => {
   const [isPreviewing, setIsPreviewing] = useState(false);
 
+  const isMatrix = Array.isArray(emojiData) && Array.isArray(emojiData[0]);
+
   return (
     <motion.div
       variants={itemVariants}
@@ -16,7 +18,7 @@ const GalleryCard = ({ id, name, thumbnail, date, emojiData, onDelete }) => {
       className="bg-white p-4 pb-12 skeuo-card border-[12px] border-white relative group"
     >
       <div className="aspect-square bg-studio-bg skeuo-inner flex items-center justify-center text-6xl mb-6 overflow-hidden relative">
-        {isPreviewing && Array.isArray(emojiData) ? (
+      {isPreviewing && isMatrix ? (
           <div className="scale-[0.3]">
             <AnimationPreview
               matrix={emojiData}
@@ -38,6 +40,7 @@ const GalleryCard = ({ id, name, thumbnail, date, emojiData, onDelete }) => {
           </motion.span>
         )}
 
+      {isMatrix && (
         <button
           onClick={() => setIsPreviewing(!isPreviewing)}
           className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all ${
@@ -46,6 +49,7 @@ const GalleryCard = ({ id, name, thumbnail, date, emojiData, onDelete }) => {
         >
           <Play size={14} fill={isPreviewing ? "currentColor" : "none"} />
         </button>
+      )}
       </div>
       <div className="px-2">
         <h3 className="font-black text-gray-800 text-lg uppercase tracking-tight truncate">{name}</h3>
