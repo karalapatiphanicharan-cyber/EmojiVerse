@@ -1,42 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, ExternalLink } from 'lucide-react';
+import { Trash2, ExternalLink, Play } from 'lucide-react';
 import { containerVariants, itemVariants } from '../hooks/useAnimation';
 import { getCreations, deleteCreation } from '../utils/saveManager';
 import { useToast } from '../context/ToastContext';
+import AnimationPreview from '../components/animation/AnimationPreview';
 
-const GalleryCard = ({ id, name, thumbnail, date, onDelete }) => (
-  <motion.div
-    variants={itemVariants}
-    whileHover={{ y: -8, rotate: -1 }}
-    className="bg-white p-4 pb-12 skeuo-card border-[12px] border-white relative group"
-  >
-    <div className="aspect-square bg-studio-bg skeuo-inner flex items-center justify-center text-6xl mb-6 overflow-hidden">
-      <motion.span
-        animate={{
-          scale: [1, 1.1, 1],
-          rotate: [0, 5, -5, 0]
-        }}
-        transition={{ duration: 4, repeat: Infinity }}
-      >
-        {thumbnail}
-      </motion.span>
-    </div>
-    <div className="px-2">
-      <h3 className="font-black text-gray-800 text-lg uppercase tracking-tight truncate">{name}</h3>
-      <p className="text-xs text-gray-400 font-bold mt-1">{new Date(date).toLocaleDateString()}</p>
-    </div>
+const GalleryCard = ({ id, name, thumbnail, date, emojiData, onDelete }) => {
+  const [isPreviewing, setIsPreviewing] = useState(false);
 
-    <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-      <button
-        onClick={() => onDelete(id)}
-        className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
-      >
-        <Trash2 size={14} />
-      </button>
-    </div>
-  </motion.div>
-);
+  return (
+    <motion.div
+      variants={itemVariants}
+      whileHover={{ y: -8, rotate: -1 }}
+      className="bg-white p-4 pb-12 skeuo-card border-[12px] border-white relative group"
+    >
+      <div className="aspect-square bg-studio-bg skeuo-inner flex items-center justify-center text-6xl mb-6 overflow-hidden relative">
+        {isPreviewing && Array.isArray(emojiData) ? (
+          <div className="scale-[0.3]">
+            <AnimationPreview
+              matrix={emojiData}
+              preset="bounce"
+              isPlaying={true}
+              bgStyle="paper"
+              emojiSize="medium"
+            />
+          </div>
+        ) : (
+          <motion.span
+            animate={{
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{ duration: 4, repeat: Infinity }}
+          >
+            {thumbnail}
+          </motion.span>
+        )}
+
+        <button
+          onClick={() => setIsPreviewing(!isPreviewing)}
+          className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all ${
+            isPreviewing ? 'bg-amber-500 text-white' : 'bg-white/80 text-gray-600 hover:bg-white'
+          }`}
+        >
+          <Play size={14} fill={isPreviewing ? "currentColor" : "none"} />
+        </button>
+      </div>
+      <div className="px-2">
+        <h3 className="font-black text-gray-800 text-lg uppercase tracking-tight truncate">{name}</h3>
+        <p className="text-xs text-gray-400 font-bold mt-1">{new Date(date).toLocaleDateString()}</p>
+      </div>
+
+      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => onDelete(id)}
+          className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
 
 const Gallery = () => {
   const [creations, setCreations] = useState([]);

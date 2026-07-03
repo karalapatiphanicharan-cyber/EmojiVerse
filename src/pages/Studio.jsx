@@ -14,6 +14,7 @@ import GradientSelector from '../components/gradient/GradientSelector';
 import EmojiPaintCanvas from '../components/painter/EmojiPaintCanvas';
 import BrushToolbar from '../components/painter/BrushToolbar';
 import PaintControls from '../components/painter/PaintControls';
+import AnimationStudio from '../components/animation/AnimationStudio';
 
 import { generateMultiEmojiArt } from '../utils/multiEmojiGenerator';
 import { applyFontStyle } from '../utils/fontStyles';
@@ -22,7 +23,7 @@ import { useEmojiPainter } from '../hooks/useEmojiPainter';
 import { saveCreation } from '../utils/saveManager';
 
 const Studio = () => {
-  const [activeTab, setActiveTab] = useState('text'); // 'text' or 'painter'
+  const [activeTab, setActiveTab] = useState('text'); // 'text', 'painter', or 'animator'
   const { showToast } = useToast();
 
   // Settings State
@@ -164,6 +165,12 @@ const Studio = () => {
               >
                 Painter
               </button>
+              <button
+                onClick={() => setActiveTab('animator')}
+                className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${activeTab === 'animator' ? 'bg-white shadow-skeuo-raised' : 'text-gray-400'}`}
+              >
+                Animator
+              </button>
             </div>
 
             {activeTab === 'painter' && (
@@ -188,7 +195,7 @@ const Studio = () => {
 
       <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-x-hidden order-2 lg:order-2">
         <div className="max-w-4xl mx-auto space-y-8">
-          {activeTab === 'text' ? (
+          {activeTab === 'text' && (
             <>
               <TextInputPanel
                 text={text}
@@ -204,7 +211,9 @@ const Studio = () => {
                 density={settings.density}
               />
             </>
-          ) : (
+          )}
+
+          {activeTab === 'painter' && (
             <div className="space-y-4">
                <div className="flex justify-between items-center bg-white/50 p-4 rounded-2xl shadow-skeuo-raised">
                   <div className="flex gap-2">
@@ -240,12 +249,22 @@ const Studio = () => {
             </div>
           )}
 
-          <ExportControls
-            art={activeTab === 'text' ? textHistory.state : paintHistory.state}
-            onClear={activeTab === 'text' ? () => textHistory.reset([]) : () => paintHistory.reset(emptyGrid)}
-            onRandomize={handleRandomize}
-            onSave={handleSave}
-          />
+          {activeTab === 'animator' && (
+            <AnimationStudio
+              matrix={paintHistory.state.some(row => row.some(cell => cell !== "")) ? paintHistory.state : textHistory.state}
+              bgStyle={settings.bgStyle}
+              emojiSize={settings.emojiSize}
+            />
+          )}
+
+          {activeTab !== 'animator' && (
+            <ExportControls
+              art={activeTab === 'text' ? textHistory.state : paintHistory.state}
+              onClear={activeTab === 'text' ? () => textHistory.reset([]) : () => paintHistory.reset(emptyGrid)}
+              onRandomize={handleRandomize}
+              onSave={handleSave}
+            />
+          )}
         </div>
       </main>
 
