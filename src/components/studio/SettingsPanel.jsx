@@ -1,47 +1,11 @@
 import React from 'react';
-import SliderControl from './SliderControl';
 
-const SettingsPanel = () => {
-  const [size, setSize] = React.useState(32);
-  const [spacing, setSpacing] = React.useState(10);
-  const [speed, setSpeed] = React.useState(50);
-
+const SettingsPanel = ({ children }) => {
   return (
-    <div className="w-80 h-[calc(100vh-120px)] skeuo-raised p-8 flex flex-col gap-10 m-4 overflow-y-auto">
-      <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">Global Settings</h3>
-
-      <div className="space-y-12">
-        <SliderControl
-          label="Emoji Size"
-          value={size}
-          min={16}
-          max={128}
-          onChange={setSize}
-        />
-
-        <SliderControl
-          label="Spacing"
-          value={spacing}
-          min={0}
-          max={50}
-          onChange={setSpacing}
-        />
-
-        <SliderControl
-          label="Anim Speed"
-          value={speed}
-          min={1}
-          max={100}
-          onChange={setSpeed}
-        />
-      </div>
-
-      <div className="mt-auto pt-10">
-        <button className="w-full py-4 skeuo-raised bg-studio-accent text-white font-bold rounded-2xl hover:brightness-105 active:shadow-skeuo-pressed transition-all">
-          Export Art
-        </button>
-      </div>
-    </div>
+    <aside className="w-full lg:w-80 h-auto lg:h-[calc(100vh-6rem)] skeuo-raised p-8 flex flex-col gap-10 m-0 lg:m-4 overflow-y-auto bg-studio-surface/50">
+      <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest px-2">Settings & Styles</h3>
+      {children}
+    </aside>
   );
 };
 

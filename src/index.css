@@ -34,6 +34,21 @@
       linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)),
       url('./assets/textures/paper.png');
   }
+
+  pre {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.1) transparent;
+  }
+
+  pre::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  pre::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 10px;
+  }
 }
 
 /* Custom scrollbar for skeuomorphic feel */
