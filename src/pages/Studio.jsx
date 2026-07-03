@@ -15,14 +15,14 @@ const Studio = () => {
   // Main State
   const [text, setText] = useState('');
   const [selectedEmoji, setSelectedEmoji] = useState('🔥');
-  const [art, setArt] = useState('');
+  const [art, setArt] = useState([]); // Now a matrix
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
 
   // Settings State
   const [settings, setSettings] = useState({
     emojiSize: 'medium',
-    letterSpacing: 1,
+    letterSpacing: 1, // Note: Generator now uses fixed 1-cell spacing between letters
     lineHeight: 1,
     bgStyle: 'paper',
     density: 'normal'
@@ -43,7 +43,10 @@ const Studio = () => {
 
     // Simulate generation delay for "magic" feeling
     setTimeout(() => {
-      const generatedArt = generateEmojiArt(text, selectedEmoji, settings);
+      const generatedArt = generateEmojiArt(text, selectedEmoji, {
+        letterSpacing: settings.letterSpacing,
+        lineHeight: settings.lineHeight
+      });
       setArt(generatedArt);
       setIsLoading(false);
 
@@ -54,12 +57,12 @@ const Studio = () => {
         origin: { y: 0.6 },
         colors: ['#3b82f6', '#6366f1', '#f43f5e', '#fbbf24']
       });
-    }, 800);
-  }, [text, selectedEmoji, settings]);
+    }, 400); // Faster generation since it's just matrix creation
+  }, [text, selectedEmoji, settings.letterSpacing, settings.lineHeight, showToast]);
 
   const handleClear = () => {
     setText('');
-    setArt('');
+    setArt([]);
   };
 
   const handleRandomize = () => {
@@ -79,11 +82,9 @@ const Studio = () => {
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // CTRL + ENTER to generate
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         handleGenerate();
       }
-      // CTRL + C to copy (handled by browser usually, but can be customized)
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -96,9 +97,6 @@ const Studio = () => {
       animate={{ opacity: 1 }}
       className="pt-20 lg:pt-24 min-h-screen flex flex-col lg:flex-row bg-[#fdfbf7]"
     >
-      {/* Mobile-optimized order: Tools top, then Canvas, then Settings */}
-
-      {/* Left Panel - Emoji Selection */}
       <div className="order-1 lg:order-1">
         <ToolPanel>
           <EmojiPicker
@@ -108,7 +106,6 @@ const Studio = () => {
         </ToolPanel>
       </div>
 
-      {/* Center Area - Canvas */}
       <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-x-hidden order-2 lg:order-2">
         <div className="max-w-4xl mx-auto space-y-8">
           <TextInputPanel
@@ -123,6 +120,7 @@ const Studio = () => {
             isLoading={isLoading}
             bgStyle={settings.bgStyle}
             emojiSize={settings.emojiSize}
+            density={settings.density}
           />
 
           <ExportControls
@@ -133,7 +131,6 @@ const Studio = () => {
         </div>
       </main>
 
-      {/* Right Panel - Settings */}
       <div className="order-3 lg:order-3">
         <SettingsPanel>
           <StyleControls

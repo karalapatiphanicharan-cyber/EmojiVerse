@@ -3,33 +3,36 @@ import { motion } from 'framer-motion';
 import { Copy, Download, Trash2, Dices, Check } from 'lucide-react';
 import { downloadAsTxt, downloadAsPng } from '../../utils/downloadHelper';
 import { useToast } from '../../context/ToastContext';
+import { matrixToText } from '../../utils/emojiGenerator';
 
 const ExportControls = ({ art, onClear, onRandomize }) => {
   const [copied, setCopied] = useState(false);
   const { showToast } = useToast();
 
   const handleCopy = () => {
-    if (!art) {
+    if (!art || art.length === 0) {
       showToast("🎨 Create art first");
       return;
     }
-    navigator.clipboard.writeText(art);
+    const textArt = matrixToText(art);
+    navigator.clipboard.writeText(textArt);
     setCopied(true);
     showToast("📋 Copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDownloadTxt = () => {
-    if (!art) {
+    if (!art || art.length === 0) {
       showToast("📥 Nothing to download");
       return;
     }
-    downloadAsTxt(art);
+    const textArt = matrixToText(art);
+    downloadAsTxt(textArt);
     showToast("📄 Downloading TXT...");
   };
 
   const handleDownloadPng = () => {
-    if (!art) {
+    if (!art || art.length === 0) {
       showToast("🖼️ Generate emoji art first");
       return;
     }
