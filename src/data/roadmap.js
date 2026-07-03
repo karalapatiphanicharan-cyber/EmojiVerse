@@ -13,9 +13,9 @@ export const roadmap = [
   },
   {
     phase: "Phase 3",
-    title: "Animations & Motion",
-    description: "Adding life to creations with Framer Motion powered emoji physics.",
-    status: "upcoming"
+    title: "Animation Studio",
+    description: "Full motion engine with presets, physical timeline, and high-quality GIF exports.",
+    status: "completed"
   },
   {
     phase: "Phase 4",
