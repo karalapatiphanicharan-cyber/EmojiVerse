@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { useToast } from '../context/ToastContext';
 import ToolPanel from '../components/studio/ToolPanel';
 import SettingsPanel from '../components/studio/SettingsPanel';
 import EmojiPicker from '../components/studio/EmojiPicker';
@@ -16,6 +17,7 @@ const Studio = () => {
   const [selectedEmoji, setSelectedEmoji] = useState('🔥');
   const [art, setArt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useToast();
 
   // Settings State
   const [settings, setSettings] = useState({
@@ -28,12 +30,12 @@ const Studio = () => {
 
   // Generator Logic
   const handleGenerate = useCallback(() => {
-    if (!text.trim()) {
-      alert("Enter some text first ✏️");
+    if (!text || !text.trim()) {
+      showToast("✏️ Enter text to create art");
       return;
     }
     if (!selectedEmoji) {
-      alert("Choose your emoji magic ✨");
+      showToast("✨ Choose your emoji magic");
       return;
     }
 
@@ -92,18 +94,22 @@ const Studio = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="pt-24 min-h-screen flex flex-col lg:flex-row bg-[#fdfbf7]"
+      className="pt-20 lg:pt-24 min-h-screen flex flex-col lg:flex-row bg-[#fdfbf7]"
     >
+      {/* Mobile-optimized order: Tools top, then Canvas, then Settings */}
+
       {/* Left Panel - Emoji Selection */}
-      <ToolPanel>
-        <EmojiPicker
-          selectedEmoji={selectedEmoji}
-          onSelect={setSelectedEmoji}
-        />
-      </ToolPanel>
+      <div className="order-1 lg:order-1">
+        <ToolPanel>
+          <EmojiPicker
+            selectedEmoji={selectedEmoji}
+            onSelect={setSelectedEmoji}
+          />
+        </ToolPanel>
+      </div>
 
       {/* Center Area - Canvas */}
-      <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-x-hidden order-2 lg:order-2">
         <div className="max-w-4xl mx-auto space-y-8">
           <TextInputPanel
             text={text}
@@ -128,12 +134,14 @@ const Studio = () => {
       </main>
 
       {/* Right Panel - Settings */}
-      <SettingsPanel>
-        <StyleControls
-          settings={settings}
-          setSettings={setSettings}
-        />
-      </SettingsPanel>
+      <div className="order-3 lg:order-3">
+        <SettingsPanel>
+          <StyleControls
+            settings={settings}
+            setSettings={setSettings}
+          />
+        </SettingsPanel>
+      </div>
     </motion.div>
   );
 };
