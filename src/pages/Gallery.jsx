@@ -1,122 +1,145 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, ExternalLink, Play } from 'lucide-react';
-import { containerVariants, itemVariants } from '../hooks/useAnimation';
-import { getCreations, deleteCreation } from '../utils/saveManager';
+import { Search, SlidersHorizontal, Grid3X3, List } from 'lucide-react';
+import { useGallery } from '../hooks/useGallery';
+import { deleteCreation, toggleFavorite } from '../utils/storageManager';
 import { useToast } from '../context/ToastContext';
-import AnimationPreview from '../components/animation/AnimationPreview';
+import { soundManager } from '../utils/soundManager';
 
-const GalleryCard = ({ id, name, thumbnail, date, emojiData, type, onDelete }) => {
-  const [isPreviewing, setIsPreviewing] = useState(false);
-
-  const isMatrix = Array.isArray(emojiData) && Array.isArray(emojiData[0]);
-  const isAI = type === 'ai';
-
-  return (
-    <motion.div
-      variants={itemVariants}
-      whileHover={{ y: -8, rotate: -1 }}
-      className="bg-white p-4 pb-12 skeuo-card border-[12px] border-white relative group"
-    >
-      <div className="aspect-square bg-studio-bg skeuo-inner flex items-center justify-center text-6xl mb-6 overflow-hidden relative p-4">
-      {isPreviewing && isMatrix ? (
-          <div className="scale-[0.3]">
-            <AnimationPreview
-              matrix={emojiData}
-              preset="bounce"
-              isPlaying={true}
-              bgStyle="paper"
-              emojiSize="medium"
-            />
-          </div>
-        ) : isAI ? (
-          <div className="flex flex-col items-center justify-center text-center">
-            <span className="text-4xl mb-4">{thumbnail}</span>
-            <div className="text-xs font-mono text-gray-500 max-h-24 overflow-hidden text-ellipsis line-clamp-3">
-              {typeof emojiData === 'string' ? emojiData : Array.isArray(emojiData) ? emojiData.join(', ') : JSON.stringify(emojiData)}
-            </div>
-          </div>
-        ) : (
-          <motion.span
-            animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, -5, 0]
-            }}
-            transition={{ duration: 4, repeat: Infinity }}
-          >
-            {thumbnail}
-          </motion.span>
-        )}
-
-      {isMatrix && (
-        <button
-          onClick={() => setIsPreviewing(!isPreviewing)}
-          className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-lg transition-all ${
-            isPreviewing ? 'bg-amber-500 text-white' : 'bg-white/80 text-gray-600 hover:bg-white'
-          }`}
-        >
-          <Play size={14} fill={isPreviewing ? "currentColor" : "none"} />
-        </button>
-      )}
-      </div>
-      <div className="px-2">
-        <h3 className="font-black text-gray-800 text-lg uppercase tracking-tight truncate">{name}</h3>
-        <p className="text-xs text-gray-400 font-bold mt-1">{new Date(date).toLocaleDateString()}</p>
-      </div>
-
-      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={() => onDelete(id)}
-          className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
-        >
-          <Trash2 size={14} />
-        </button>
-      </div>
-    </motion.div>
-  );
-};
+import CreationCard from '../components/gallery/CreationCard';
+import FilterTabs from '../components/gallery/FilterTabs';
+import CreationViewer from '../components/gallery/CreationViewer';
 
 const Gallery = () => {
-  const [creations, setCreations] = useState([]);
-  const { showToast } = useToast();
+  const {
+    creations,
+    filter,
+    setFilter,
+    search,
+    setSearch,
+    sort,
+    setSort,
+    favorites
+  } = useGallery();
 
-  useEffect(() => {
-    setCreations(getCreations());
-  }, []);
+  const { showToast } = useToast();
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
   const handleDelete = (id) => {
     if (deleteCreation(id)) {
-      setCreations(prev => prev.filter(c => c.id !== id));
-      showToast("🗑️ Artwork deleted");
+      showToast("🗑️ Artwork moved to trash");
+      soundManager.play('trash');
     }
   };
 
+  const handleToggleFav = (id) => {
+    toggleFavorite(id);
+    soundManager.play('click');
+  };
+
   return (
-    <div className="pt-32 pb-20 px-6 max-w-6xl mx-auto min-h-screen">
+    <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto min-h-screen">
       <div className="mb-16 text-center">
-        <h2 className="text-5xl font-black text-gray-900 mb-4 tracking-tighter">My Emoji Creations</h2>
-        <p className="text-gray-500 font-medium italic underline decoration-blue-200 decoration-4 underline-offset-4">A physical collection of your digital imagination</p>
+        <h2 className="text-6xl font-black text-gray-900 mb-4 tracking-tighter uppercase">
+          Archive <span className="text-amber-500">Center</span>
+        </h2>
+        <p className="text-gray-500 font-bold italic border-l-4 border-amber-400 pl-4 inline-block">
+          Managing {creations.length} digital masterpieces in storage
+        </p>
       </div>
+
+      {/* Control Bar */}
+      <div className="flex flex-col lg:flex-row gap-6 mb-12">
+         <div className="flex-1 relative group">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-amber-500 transition-colors" size={20} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name or emoji..."
+              className="w-full pl-16 pr-6 py-5 bg-white rounded-3xl shadow-skeuo-raised border-2 border-white focus:border-amber-400 focus:ring-0 transition-all font-bold text-gray-700"
+            />
+         </div>
+
+         <div className="flex gap-4">
+            <div className="relative">
+              <SlidersHorizontal className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <select
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+                className="pl-12 pr-10 py-5 bg-white rounded-3xl shadow-skeuo-raised border-2 border-white focus:border-amber-400 focus:ring-0 transition-all font-bold text-gray-700 appearance-none cursor-pointer"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="alphabetical">A - Z</option>
+              </select>
+            </div>
+
+            <div className="flex p-2 bg-gray-100 rounded-3xl shadow-inner border-2 border-gray-200">
+               <button
+                 onClick={() => setViewMode('grid')}
+                 className={`p-3 rounded-2xl transition-all ${viewMode === 'grid' ? 'bg-white shadow-lg text-amber-500' : 'text-gray-400'}`}
+               >
+                 <Grid3X3 size={20} />
+               </button>
+               <button
+                 onClick={() => setViewMode('list')}
+                 className={`p-3 rounded-2xl transition-all ${viewMode === 'list' ? 'bg-white shadow-lg text-amber-500' : 'text-gray-400'}`}
+               >
+                 <List size={20} />
+               </button>
+            </div>
+         </div>
+      </div>
+
+      <FilterTabs activeFilter={filter} setFilter={setFilter} />
 
       {creations.length > 0 ? (
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12"
+          layout
+          className={`grid gap-12 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'grid-cols-1'}`}
         >
-          <AnimatePresence>
+          <AnimatePresence mode="popLayout">
             {creations.map((item) => (
-              <GalleryCard key={item.id} {...item} onDelete={handleDelete} />
+              <CreationCard
+                key={item.id}
+                item={item}
+                isFavorite={favorites.includes(item.id)}
+                onDelete={handleDelete}
+                onView={() => setSelectedItem(item)}
+              />
             ))}
           </AnimatePresence>
         </motion.div>
       ) : (
-        <div className="text-center py-32 opacity-20">
-          <div className="text-9xl mb-8">🖼️</div>
-          <p className="text-2xl font-black uppercase tracking-widest">Your gallery is empty</p>
+        <div className="text-center py-32">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="inline-block p-12 bg-white rounded-[4rem] shadow-skeuo-raised border-2 border-white mb-8"
+          >
+            <div className="text-9xl mb-4 grayscale opacity-20">🖼️</div>
+          </motion.div>
+          <h3 className="text-2xl font-black text-gray-300 uppercase tracking-widest">
+            {search ? 'No matches found' : 'Your emoji universe is waiting 🌎'}
+          </h3>
+          <p className="text-gray-400 font-bold mt-2">Start creating to fill your archive</p>
         </div>
       )}
+
+      {/* Viewer Modal */}
+      <AnimatePresence>
+        {selectedItem && (
+          <CreationViewer
+            item={selectedItem}
+            isFavorite={favorites.includes(selectedItem.id)}
+            onClose={() => setSelectedItem(null)}
+            onToggleFavorite={handleToggleFav}
+            onDelete={handleDelete}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
