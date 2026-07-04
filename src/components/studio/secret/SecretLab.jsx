@@ -25,6 +25,7 @@ const SecretLab = () => {
     reset,
     copyToClipboard,
     isCopied,
+    isExported,
     themes
   } = useSecretMessage();
 
@@ -43,6 +44,7 @@ const SecretLab = () => {
             onReset={reset}
             onCopy={copyToClipboard}
             isCopied={isCopied}
+            isExported={isExported}
           />
         );
       case 'decode':
