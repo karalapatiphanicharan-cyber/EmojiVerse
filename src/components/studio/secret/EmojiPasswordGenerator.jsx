@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import SkeuoButton from '../../common/SkeuoButton';
-import { ShieldCheck, RefreshCw, Copy, User } from 'lucide-react';
+import { ShieldCheck, RefreshCw, Copy, User, Eye, EyeOff } from 'lucide-react';
 
 const EmojiPasswordGenerator = ({
   onGenerate,
   output,
   strength,
+  label,
   onCopy,
   isCopied
 }) => {
   const [name, setName] = useState('');
+  const [showPassword, setShowPassword] = useState(true);
 
   const getStrengthColor = () => {
     if (strength > 80) return 'bg-green-400';
@@ -18,25 +20,18 @@ const EmojiPasswordGenerator = ({
     return 'bg-red-400';
   };
 
-  const getStrengthText = () => {
-    if (strength > 80) return 'Unbreakable';
-    if (strength > 50) return 'Solid';
-    if (strength > 0) return 'Weak Sauce';
-    return 'Not Generated';
-  };
-
   return (
     <div className="space-y-8">
       <div className="space-y-2">
         <label className="text-sm font-bold text-stone-600 block px-1 flex items-center gap-2">
-          <User size={14} /> Custom Username / Base
+          <User size={14} /> Enter Name or Word
         </label>
         <div className="relative group">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. EmojiLover2024"
+            placeholder="Example: Phani"
             className="w-full p-4 bg-stone-50 rounded-2xl border-2 border-stone-200
                        focus:border-emerald-400 focus:ring-0 transition-all
                        shadow-[inset_2px_2px_5px_rgba(0,0,0,0.1)] text-lg text-stone-700"
@@ -52,7 +47,7 @@ const EmojiPasswordGenerator = ({
         className="w-full bg-emerald-400 text-emerald-900 font-black py-4 text-lg uppercase tracking-widest"
       >
         <span className="flex items-center justify-center gap-2">
-          <RefreshCw size={20} /> Forge Emoji Password
+          <RefreshCw size={20} /> {output ? 'Generate Again 🔄' : 'Forge Emoji Password'}
         </span>
       </SkeuoButton>
 
@@ -70,26 +65,37 @@ const EmojiPasswordGenerator = ({
               <div className="text-[10px] font-black text-emerald-400/50 mb-2 tracking-[0.5em] uppercase">
                 Secure Sequence
               </div>
-              <div className="text-3xl font-mono text-white break-all text-center mb-6 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">
-                {output}
+              <div className="text-3xl font-mono text-white break-all text-center mb-6 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] min-h-[1.5em] flex items-center justify-center">
+                {showPassword ? output : '••••••••••••'}
               </div>
 
-              <SkeuoButton
-                onClick={() => onCopy(output)}
-                className={`w-full py-3 font-bold flex items-center justify-center gap-2
-                           ${isCopied ? 'bg-emerald-500 text-white' : 'bg-stone-600 text-stone-200'}`}
-              >
-                <Copy size={18} />
-                {isCopied ? 'Locked & Copied!' : 'Copy to Clipboard'}
-              </SkeuoButton>
+              <div className="w-full flex gap-3">
+                <SkeuoButton
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="bg-stone-700 text-stone-200 px-4 py-3"
+                  title={showPassword ? "Hide Password" : "Show Password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </SkeuoButton>
+
+                <SkeuoButton
+                  onClick={() => onCopy(output, "Password copied 🔐")}
+                  active={isCopied}
+                  className={`flex-1 py-3 font-bold flex items-center justify-center gap-2 transition-all active:scale-95
+                             ${isCopied ? 'bg-emerald-500 text-white' : 'bg-stone-600 text-stone-200'}`}
+                >
+                  <Copy size={18} />
+                  {isCopied ? 'Copied 🔐' : 'Copy 📋'}
+                </SkeuoButton>
+              </div>
             </div>
           </div>
 
           <div className="px-2 space-y-2">
             <div className="flex justify-between items-center text-xs font-black text-stone-500 uppercase tracking-widest">
               <span>Security Level</span>
-              <span className={strength > 50 ? 'text-emerald-600' : 'text-red-500'}>
-                {getStrengthText()}
+              <span className={strength > 70 ? 'text-emerald-600' : strength > 40 ? 'text-amber-600' : 'text-red-500'}>
+                {label}
               </span>
             </div>
             <div className="h-4 bg-stone-200 rounded-full overflow-hidden shadow-inner border border-stone-300">
@@ -101,7 +107,7 @@ const EmojiPasswordGenerator = ({
             </div>
             <div className="flex items-center gap-2 text-[10px] text-stone-400 font-medium italic">
               <ShieldCheck size={12} />
-              Encryption standard: AES-Emoji-v1 (Playful Edition)
+              Encryption standard: AES-Emoji-v2 (Strict Edition)
             </div>
           </div>
         </motion.div>
