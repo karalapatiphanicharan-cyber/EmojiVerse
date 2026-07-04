@@ -6,10 +6,11 @@ import { getCreations, deleteCreation } from '../utils/saveManager';
 import { useToast } from '../context/ToastContext';
 import AnimationPreview from '../components/animation/AnimationPreview';
 
-const GalleryCard = ({ id, name, thumbnail, date, emojiData, onDelete }) => {
+const GalleryCard = ({ id, name, thumbnail, date, emojiData, type, onDelete }) => {
   const [isPreviewing, setIsPreviewing] = useState(false);
 
   const isMatrix = Array.isArray(emojiData) && Array.isArray(emojiData[0]);
+  const isAI = type === 'ai';
 
   return (
     <motion.div
@@ -17,7 +18,7 @@ const GalleryCard = ({ id, name, thumbnail, date, emojiData, onDelete }) => {
       whileHover={{ y: -8, rotate: -1 }}
       className="bg-white p-4 pb-12 skeuo-card border-[12px] border-white relative group"
     >
-      <div className="aspect-square bg-studio-bg skeuo-inner flex items-center justify-center text-6xl mb-6 overflow-hidden relative">
+      <div className="aspect-square bg-studio-bg skeuo-inner flex items-center justify-center text-6xl mb-6 overflow-hidden relative p-4">
       {isPreviewing && isMatrix ? (
           <div className="scale-[0.3]">
             <AnimationPreview
@@ -27,6 +28,13 @@ const GalleryCard = ({ id, name, thumbnail, date, emojiData, onDelete }) => {
               bgStyle="paper"
               emojiSize="medium"
             />
+          </div>
+        ) : isAI ? (
+          <div className="flex flex-col items-center justify-center text-center">
+            <span className="text-4xl mb-4">{thumbnail}</span>
+            <div className="text-xs font-mono text-gray-500 max-h-24 overflow-hidden text-ellipsis line-clamp-3">
+              {typeof emojiData === 'string' ? emojiData : Array.isArray(emojiData) ? emojiData.join(', ') : JSON.stringify(emojiData)}
+            </div>
           </div>
         ) : (
           <motion.span
