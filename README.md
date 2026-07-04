@@ -17,15 +17,17 @@ EmojiVerse allows users to create complex artwork using only emojis. Whether it'
 - **Animation:** Framer Motion (Presets: Rain, Explosion, Wave, etc.)
 - **Image Processing:** HTML5 Canvas API
 - **Export:** GIF.js & HTML2Canvas (Animation & Static exports)
+- **Security:** Emoji-based character mapping & XOR encryption
 - **Icons:** Lucide React
 
-## ✨ Features (Phases 1-4 Complete)
+## ✨ Features (Phases 1-5 Complete)
 
 - **3D Skeuomorphic UI:** Realistic surfaces, deep shadows, and tactile buttons.
 - **Emoji Text Painter:** Convert text to emoji art using a 7x5 pixel matrix engine.
 - **Advanced Painter:** Manual drawing canvas (50x30) with Brush, Fill, and Undo/Redo tools.
 - **Animation Studio:** Full motion engine with presets, live timeline, and GIF export capability.
 - **Image Emoji Converter:** Transform photos into emoji pixel art with color analysis and custom palettes.
+- **Secret Emoji Lab:** Secure messaging lab with themed ciphers and emoji-based password generation.
 - **Physical Gallery:** Save your creations locally and preview them with animated thumbnails.
 
 ## 🗺 Roadmap
@@ -34,7 +36,7 @@ EmojiVerse allows users to create complex artwork using only emojis. Whether it'
 - [x] **Phase 2:** Advanced Painting - Custom brushes, fills, and history.
 - [x] **Phase 3:** Animation Studio - Motion presets, timeline, and GIF export.
 - [x] **Phase 4:** Image Converter - Photo-to-emoji mosaic transformation.
-- [ ] **Phase 5:** Emoji Encryption - Secure emoji-based messaging.
+- [x] **Phase 5:** Emoji Encryption - Secure emoji-based messaging & password lab.
 
 ## ⚙️ Setup Instructions
 
