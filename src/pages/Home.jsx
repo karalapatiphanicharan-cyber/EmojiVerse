@@ -6,9 +6,11 @@ import EmojiCard from '../components/common/EmojiCard';
 import { EmojiBackground } from '../components/common/FloatingEmoji';
 import { features } from '../data/features';
 import { containerVariants, itemVariants } from '../hooks/useAnimation';
+import { getCreations } from '../utils/storageManager';
 
 const Home = () => {
   const navigate = useNavigate();
+  const recentCreations = getCreations().slice(0, 4);
 
   return (
     <div className="relative min-h-screen pt-32 pb-20 px-6">
@@ -33,16 +35,40 @@ const Home = () => {
           </p>
         </motion.div>
 
-        <div className="flex justify-center gap-6">
-          <SkeuoButton
-            primary
-            size="lg"
-            onClick={() => navigate('/studio')}
-            className="group"
-          >
-            <span>Open Studio</span>
-            <span className="group-hover:translate-x-1 transition-transform">🚀</span>
-          </SkeuoButton>
+        <div className="flex flex-col items-center gap-12">
+          <div className="flex justify-center gap-6">
+            <SkeuoButton
+              primary
+              size="lg"
+              onClick={() => navigate('/studio')}
+              className="group"
+            >
+              <span>Open Studio</span>
+              <span className="group-hover:translate-x-1 transition-transform">🚀</span>
+            </SkeuoButton>
+          </div>
+
+          {recentCreations.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-2xl"
+            >
+               <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-6">Continue Creating</h3>
+               <div className="flex gap-4 justify-center">
+                  {recentCreations.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => navigate('/gallery')}
+                      className="w-16 h-16 bg-white rounded-2xl shadow-skeuo-raised border-2 border-white flex items-center justify-center text-3xl hover:scale-110 transition-transform active:shadow-skeuo-pressed"
+                      title={c.name}
+                    >
+                      {c.thumbnail}
+                    </button>
+                  ))}
+               </div>
+            </motion.div>
+          )}
         </div>
       </section>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { useToast } from '../context/ToastContext';
@@ -35,9 +36,10 @@ import { generateMultiEmojiArt } from '../utils/multiEmojiGenerator';
 import { applyFontStyle } from '../utils/fontStyles';
 import { useHistory } from '../hooks/useHistory';
 import { useEmojiPainter } from '../hooks/useEmojiPainter';
-import { saveCreation } from '../utils/saveManager';
+import { saveCreation } from '../utils/storageManager';
 
 const Studio = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('text'); // 'text', 'painter', 'animator', 'converter', 'secret', 'ai'
   const { showToast } = useToast();
 
@@ -54,6 +56,28 @@ const Studio = () => {
 
   // Text Painter States
   const [text, setText] = useState('');
+
+  // Handle template import
+  useEffect(() => {
+    if (location.state?.template) {
+      const template = location.state.template;
+      setActiveTab(template.tool);
+
+      if (template.tool === 'text' && template.data) {
+        setText(template.data.text);
+        if (template.data.emoji) setSelectedEmojis([template.data.emoji]);
+        if (template.data.style) setSettings(prev => ({ ...prev, fontStyle: template.data.style }));
+
+        // Auto-generate if it's text art
+        setTimeout(() => {
+           const genBtn = document.querySelector('button[aria-label="Generate Art"]');
+           if (genBtn) genBtn.click();
+        }, 500);
+      }
+
+      showToast(`✨ Loaded ${template.title} template!`);
+    }
+  }, [location.state]);
   const [selectedEmojis, setSelectedEmojis] = useState(['🔥']);
   const textHistory = useHistory([]);
   const [isLoading, setIsLoading] = useState(false);
