@@ -55,37 +55,38 @@ const EmojiPasswordGenerator = ({
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
+          className="space-y-6"
         >
-          <div className="bg-stone-800 rounded-3xl p-8 relative overflow-hidden border-8 border-stone-700 shadow-2xl">
-            {/* Glossy overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+          <div className="bg-stone-800 rounded-3xl p-8 relative overflow-hidden border-8 border-stone-700 shadow-xl">
+            {/* Reduced gloss/glow overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
 
             <div className="relative z-10 flex flex-col items-center">
-              <div className="text-[10px] font-black text-emerald-400/50 mb-2 tracking-[0.5em] uppercase">
+              <div className="text-[10px] font-black text-emerald-400/50 mb-4 tracking-[0.5em] uppercase">
                 Secure Sequence
               </div>
-              <div className="text-3xl font-mono text-white break-all text-center mb-6 drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] min-h-[1.5em] flex items-center justify-center">
+              <div className="text-3xl font-mono text-white break-all text-center mb-8 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] min-h-[1.5em] flex items-center justify-center">
                 {showPassword ? output : '••••••••••••'}
               </div>
 
-              <div className="w-full flex gap-3">
+              <div className="w-full flex flex-col sm:flex-row gap-4">
                 <SkeuoButton
                   onClick={() => setShowPassword(!showPassword)}
-                  className="bg-stone-700 text-stone-200 px-4 py-3"
-                  title={showPassword ? "Hide Password" : "Show Password"}
+                  aria-label={showPassword ? "Hide Password" : "Show Password"}
+                  className="px-4 py-3 flex items-center justify-center gap-2"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  <span className="sm:hidden lg:inline">{showPassword ? 'Hide' : 'Show'}</span>
                 </SkeuoButton>
 
                 <SkeuoButton
                   onClick={() => onCopy(output, "Password copied 🔐")}
                   active={isCopied}
-                  className={`flex-1 py-3 font-bold flex items-center justify-center gap-2 transition-all active:scale-95
-                             ${isCopied ? 'bg-emerald-500 text-white' : 'bg-stone-600 text-stone-200'}`}
+                  aria-label="Copy Password"
+                  className="flex-1 py-3 font-bold flex items-center justify-center gap-2"
                 >
-                  <Copy size={18} />
-                  {isCopied ? 'Copied 🔐' : 'Copy 📋'}
+                  <Copy size={20} />
+                  {isCopied ? 'Copied 🔐' : 'Copy Password 📋'}
                 </SkeuoButton>
               </div>
             </div>

@@ -12,7 +12,8 @@ const EmojiEncoder = ({
   onEncode,
   onReset,
   onCopy,
-  isCopied
+  isCopied,
+  isExported
 }) => {
   // Extract display and full string from output object
   const displayEmojis = output?.display || '';
@@ -62,6 +63,7 @@ const EmojiEncoder = ({
         </SkeuoButton>
         <SkeuoButton
           onClick={onReset}
+          aria-label="Reset Encoder"
           className="bg-stone-200 text-stone-600 px-4"
         >
           <RotateCcw size={20} />
@@ -76,24 +78,27 @@ const EmojiEncoder = ({
         >
           <label className="text-sm font-bold text-stone-600 block px-1">Hidden Emoji Result</label>
           <div className="p-6 bg-stone-100 rounded-2xl border-4 border-dashed border-stone-300 relative group overflow-hidden">
-            <p className="text-2xl break-all tracking-widest text-center">{displayEmojis}</p>
+            <p className="text-2xl break-all tracking-widest text-center mb-6">{displayEmojis}</p>
 
-            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-4">
               <SkeuoButton
                 onClick={() => onCopy(displayEmojis, "Copied 🔥")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm
-                           ${isCopied ? 'bg-green-400 text-green-900' : 'bg-stone-200 text-stone-700'}`}
+                active={isCopied}
+                aria-label="Copy Emojis"
+                className="flex-1 flex items-center justify-center gap-2 py-3"
               >
-                <Copy size={16} />
+                <Copy size={18} />
                 {isCopied ? 'Copied!' : 'Copy Emojis'}
               </SkeuoButton>
 
               <SkeuoButton
-                onClick={() => onCopy(fullShareableString, "Exported Secret Code 🔐")}
-                className="flex-1 flex items-center justify-center gap-2 py-2 text-sm bg-stone-800 text-stone-100"
+                onClick={() => onCopy(fullShareableString, "Exported Secret Code 🔐", "export")}
+                active={isExported}
+                aria-label="Export Secret Code"
+                className="flex-1 flex items-center justify-center gap-2 py-3"
               >
-                <Share2 size={16} />
-                Export Secret Code
+                <Share2 size={18} />
+                {isExported ? 'Exported!' : 'Export Secret Code'}
               </SkeuoButton>
             </div>
             <p className="mt-4 text-[10px] text-stone-400 font-medium italic text-center leading-tight">

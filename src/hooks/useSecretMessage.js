@@ -17,6 +17,7 @@ export const useSecretMessage = () => {
   const [passwordStrength, setPasswordStrength] = useState(0); // Numeric score
   const [passwordLabel, setPasswordLabel] = useState(''); // Text label (Strong, etc)
   const [isCopied, setIsCopied] = useState(false);
+  const [isExported, setIsExported] = useState(false);
   const { showToast } = useToast();
 
   // Handle encoding
@@ -73,13 +74,18 @@ export const useSecretMessage = () => {
   }, []);
 
   // Copy to clipboard helper
-  const copyToClipboard = async (text, toastMsg = "Copied 🔥") => {
+  const copyToClipboard = async (text, toastMsg = "Copied 🔥", type = 'copy') => {
     if (!text) return false;
     try {
       await navigator.clipboard.writeText(text);
-      setIsCopied(true);
+      if (type === 'export') {
+        setIsExported(true);
+        setTimeout(() => setIsExported(false), 2000);
+      } else {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      }
       showToast(toastMsg);
-      setTimeout(() => setIsCopied(false), 2000);
       return true;
     } catch (err) {
       console.error('Failed to copy: ', err);
@@ -113,6 +119,7 @@ export const useSecretMessage = () => {
     reset,
     copyToClipboard,
     isCopied,
+    isExported,
     themes: cipherThemes
   };
 };
