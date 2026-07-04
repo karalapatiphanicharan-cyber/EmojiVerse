@@ -1,6 +1,6 @@
 const STORAGE_KEY = 'emojiverse_creations';
 
-export const saveCreation = (name, emojiData, thumbnail) => {
+export const saveCreation = (name, emojiData, thumbnail, type = 'art') => {
   try {
     const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     const newCreation = {
@@ -8,7 +8,8 @@ export const saveCreation = (name, emojiData, thumbnail) => {
       name: name || 'Untitled Masterpiece',
       date: new Date().toISOString(),
       emojiData,
-      thumbnail
+      thumbnail,
+      type
     };
 
     // Check for storage limits

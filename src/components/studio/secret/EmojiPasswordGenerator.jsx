@@ -51,7 +51,7 @@ const EmojiPasswordGenerator = ({
         </span>
       </SkeuoButton>
 
-      {output && (
+      {typeof output === 'string' && output && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

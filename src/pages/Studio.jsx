@@ -27,8 +27,9 @@ import { downloadConversionAsPng, downloadConversionAsTxt, copyToClipboard } fro
 
 // Phase 5 Components
 import SecretLab from '../components/studio/secret/SecretLab';
+import EmojiAILab from '../components/ai/EmojiAILab';
 
-import { Download, Copy, Save, Trash2, Share2, Sparkles } from 'lucide-react';
+import { Download, Copy, Save, Trash2, Share2, Sparkles, Bot } from 'lucide-react';
 
 import { generateMultiEmojiArt } from '../utils/multiEmojiGenerator';
 import { applyFontStyle } from '../utils/fontStyles';
@@ -37,7 +38,7 @@ import { useEmojiPainter } from '../hooks/useEmojiPainter';
 import { saveCreation } from '../utils/saveManager';
 
 const Studio = () => {
-  const [activeTab, setActiveTab] = useState('text'); // 'text', 'painter', 'animator', 'converter', 'secret'
+  const [activeTab, setActiveTab] = useState('text'); // 'text', 'painter', 'animator', 'converter', 'secret', 'ai'
   const { showToast } = useToast();
 
   // Settings State
@@ -102,10 +103,15 @@ const Studio = () => {
     }, 400);
   }, [text, selectedEmojis, settings, textHistory, showToast]);
 
-  const handleSave = async () => {
-    let currentArt, name, icon;
+  const handleSave = async (aiData, aiType) => {
+    let currentArt, name, icon, type = 'art';
 
-    if (activeTab === 'text') {
+    if (activeTab === 'ai') {
+      currentArt = aiData;
+      name = `AI ${aiType}: ${new Date().toLocaleTimeString()}`;
+      icon = '🤖';
+      type = 'ai';
+    } else if (activeTab === 'text') {
       currentArt = textHistory.state;
       name = `Text: ${text}`;
       icon = '🎨';
@@ -124,13 +130,32 @@ const Studio = () => {
       return;
     }
 
-    const success = saveCreation(name, currentArt, icon);
+    const success = saveCreation(name, currentArt, icon, type);
 
     if (success) {
       showToast("💾 Saved to Gallery!");
       confetti({ particleCount: 40, spread: 50 });
     } else {
       showToast("Gallery storage full");
+    }
+  };
+
+  const handleApplyAIStyle = (aiResult) => {
+    if (!aiResult) return;
+
+    setSettings(prev => ({
+      ...prev,
+      fontStyle: aiResult.style,
+    }));
+
+    // We would need to set animation too, but Studio's main state doesn't track it currently outside of AnimationStudio
+    // For now, applying the font style and showing a toast
+    showToast(`🤖 Applied ${aiResult.style} style!`);
+
+    // Switch to Text tab to see results if they have text
+    if (text) {
+      setActiveTab('text');
+      setTimeout(handleGenerate, 100);
     }
   };
 
@@ -190,7 +215,7 @@ const Studio = () => {
         <ToolPanel>
           <div className="space-y-8">
             <div className="flex flex-wrap gap-2 p-1 bg-gray-100 rounded-2xl shadow-inner">
-              {['text', 'painter', 'animator', 'converter', 'secret'].map((tab) => (
+              {['text', 'painter', 'animator', 'converter', 'secret', 'ai'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -210,6 +235,16 @@ const Studio = () => {
 
             {activeTab === 'converter' ? (
               <ImageUploader onUpload={converter.handleUpload} currentImage={converter.originalUrl} />
+            ) : activeTab === 'ai' ? (
+              <div className="p-6 bg-indigo-50 rounded-3xl border-2 border-indigo-200 shadow-inner text-center">
+                <Bot className="text-indigo-400 mx-auto mb-3" size={32} />
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">
+                  AI Assistant Online
+                </h4>
+                <p className="text-[9px] text-indigo-400 mt-2 italic">
+                  Neural engine ready for processing.
+                </p>
+              </div>
             ) : activeTab === 'secret' ? (
               <div className="p-6 bg-stone-50 rounded-3xl border-2 border-stone-200 shadow-inner text-center">
                 <Sparkles className="text-amber-400 mx-auto mb-3" size={32} />
@@ -372,7 +407,11 @@ const Studio = () => {
             <SecretLab />
           )}
 
-          {activeTab !== 'animator' && activeTab !== 'converter' && activeTab !== 'secret' && (
+          {activeTab === 'ai' && (
+            <EmojiAILab onSave={handleSave} onApplyStyle={handleApplyAIStyle} />
+          )}
+
+          {activeTab !== 'animator' && activeTab !== 'converter' && activeTab !== 'secret' && activeTab !== 'ai' && (
             <ExportControls
               art={activeTab === 'text' ? textHistory.state : paintHistory.state}
               onClear={activeTab === 'text' ? () => textHistory.reset([]) : () => paintHistory.reset(emptyGrid)}
@@ -408,6 +447,38 @@ const Studio = () => {
               </>
             )}
 
+            {activeTab === 'ai' && (
+              <div className="p-6 bg-stone-800 rounded-3xl border-b-8 border-stone-950 shadow-2xl space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                    <h4 className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.2em]">
+                      AI Core Status
+                    </h4>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-[8px] font-bold text-stone-500 uppercase">
+                      <span>Neural Load</span>
+                      <span>12%</span>
+                    </div>
+                    <div className="h-1 bg-stone-700 w-full rounded-full overflow-hidden">
+                      <div className="h-full w-[12%] bg-emerald-500" />
+                    </div>
+
+                    <div className="flex justify-between text-[8px] font-bold text-stone-500 uppercase">
+                      <span>Synapse Speed</span>
+                      <span>4.2 PFLOPS</span>
+                    </div>
+                    <div className="h-1 bg-stone-700 w-full rounded-full overflow-hidden">
+                      <div className="h-full w-[85%] bg-indigo-500" />
+                    </div>
+                  </div>
+                  <p className="text-[8px] text-stone-500 font-bold leading-tight">
+                    VERSION: <span className="text-stone-300">EMOJI-GPT v1</span><br/>
+                    UPTIME: <span className="text-stone-300">99.9%</span>
+                  </p>
+               </div>
+            )}
+
             {activeTab === 'secret' && (
                <div className="p-6 bg-stone-800 rounded-3xl border-b-8 border-stone-950 shadow-2xl space-y-4">
                   <div className="h-2 w-12 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
@@ -437,7 +508,7 @@ const Studio = () => {
                </div>
             )}
 
-            {activeTab !== 'converter' && activeTab !== 'secret' && (
+            {activeTab !== 'converter' && activeTab !== 'secret' && activeTab !== 'ai' && (
               <StyleControls
                 settings={settings}
                 setSettings={setSettings}
