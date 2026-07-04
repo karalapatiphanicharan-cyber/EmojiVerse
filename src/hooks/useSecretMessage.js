@@ -1,7 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
-import { encodeMessage, decodeMessage, CIPHER_THEMES } from '../utils/emojiCipher.js';
+import { useState, useCallback } from 'react';
+import { encodeMessage, decodeMessage } from '../utils/emojiCipher.js';
+import { themes } from '../utils/emojiThemes.js';
 import { generateEmojiPassword, calculateStrength } from '../utils/passwordGenerator.js';
-import { saveSecretMessage, getSecretMessage } from '../utils/secretStorage.js';
+import { saveSecretMessage } from '../utils/secretStorage.js';
+import { useToast } from '../context/ToastContext.jsx';
 
 /**
  * Custom hook to manage secret message logic for the Secret Lab.
@@ -11,24 +13,42 @@ export const useSecretMessage = () => {
   const [theme, setTheme] = useState('random');
   const [inputText, setInputText] = useState('');
   const [secretKey, setSecretKey] = useState('');
-  const [output, setOutput] = useState('');
+  const [output, setOutput] = useState(''); // This will store { display, full } or just string
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [isCopied, setIsCopied] = useState(false);
-  const [history, setHistory] = useState([]);
+  const { showToast } = useToast();
 
   // Handle encoding
   const handleEncode = useCallback(() => {
     if (!inputText) return;
     const encoded = encodeMessage(inputText, theme, secretKey);
-    setOutput(encoded);
+
+    // Save to storage immediately as requested
+    saveSecretMessage(encoded);
+
+    // Set output to show display emojis, but keep full string for copying
+    setOutput({
+      display: encoded.emojiString,
+      full: encoded.fullString
+    });
   }, [inputText, theme, secretKey]);
 
   // Handle decoding
   const handleDecode = useCallback(() => {
     if (!inputText) return;
-    const decoded = decodeMessage(inputText, theme, secretKey);
-    setOutput(decoded);
-  }, [inputText, theme, secretKey]);
+    const result = decodeMessage(inputText, secretKey);
+
+    if (result.success) {
+      setOutput(result.text);
+    } else {
+      if (result.error === 'WRONG_KEY') {
+        showToast("Wrong secret key 🔐");
+      } else {
+        showToast("Message not found or broken 🕵️");
+      }
+      setOutput('');
+    }
+  }, [inputText, secretKey, showToast]);
 
   // Handle password generation
   const handleGeneratePassword = useCallback((userName) => {
@@ -36,13 +56,6 @@ export const useSecretMessage = () => {
     setOutput(pwd);
     setPasswordStrength(calculateStrength(pwd));
   }, [theme]);
-
-  // Save to history/storage
-  const saveToSecretVault = useCallback(() => {
-    if (!output || mode === 'password') return null;
-    const id = saveSecretMessage(output, theme, secretKey);
-    return id;
-  }, [output, theme, secretKey, mode]);
 
   // Reset state
   const reset = () => {
@@ -65,6 +78,14 @@ export const useSecretMessage = () => {
     }
   };
 
+  const cipherThemes = {
+    space: { icon: '🚀', label: 'Space' },
+    nature: { icon: '🌱', label: 'Nature' },
+    food: { icon: '🍕', label: 'Food' },
+    animals: { icon: '🐱', label: 'Animals' },
+    random: { icon: '🎲', label: 'Random' }
+  };
+
   return {
     mode,
     setMode,
@@ -79,10 +100,9 @@ export const useSecretMessage = () => {
     handleDecode,
     handleGeneratePassword,
     passwordStrength,
-    saveToSecretVault,
     reset,
     copyToClipboard,
     isCopied,
-    themes: CIPHER_THEMES
+    themes: cipherThemes
   };
 };

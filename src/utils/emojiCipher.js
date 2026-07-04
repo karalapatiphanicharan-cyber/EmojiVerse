@@ -1,86 +1,101 @@
+import { getThemeEmoji } from './emojiThemes.js';
+
 /**
  * Emoji Cipher Utility
- * Handles encoding and decoding of text messages using emoji themes.
+ * Handles 100% reversible encoding and decoding of messages.
  */
 
-export const CIPHER_THEMES = {
-  space: {
-    icon: '🚀',
-    label: 'Space',
-    map: '🚀🌙⭐🪐👽🛸🌠☄️🔭🛰️🌌👾🤖🦾🔋📡🌍☀️🌚🔥🧊💎🧿🌀🧨'
-  },
-  nature: {
-    icon: '🌱',
-    label: 'Nature',
-    map: '🌱🌳🌸🍄🍃🌵🌻🌞🌿🍂🍏🦋🍄🍄🍀🍁🌼🌵🌴🪴🎋🌲🌴🌵🍄🐚'
-  },
-  food: {
-    icon: '🍕',
-    label: 'Food',
-    map: '🍕🍔🍟🌭🍦🍩🍪🍰🍫🍧🍡🥣🥪🍱🍛🍙🍝🌮🌯🥘🥧🧁🍯🍳🥓'
-  },
-  animals: {
-    icon: '🐱',
-    label: 'Animals',
-    map: '🐱🐶🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🦆🦅🦉🦇🐺🐴🐆🐅🐃🐘'
-  },
-  random: {
-    icon: '🎲',
-    label: 'Random',
-    map: '🔥🌙🐱🚀🍕🎮⭐🌊🌱💜🐻🌸😊🙂😄🌑☁️❤️🟪🟫🟧🟨🟩🟦🟥⬜⬛'
-  }
-};
-
-const CHAR_SET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?@#$%^&*()-_=+[]{}|;:\'"<>`~';
+const METADATA_PREFIX = '#EV:';
+const VALIDATION_MARKER = '✅';
 
 /**
- * Encodes text to emojis using a theme and optional key.
+ * Calculates a numeric value from a secret key.
+ * Sums all character codes of the key.
+ */
+export const getKeyValue = (key) => {
+  if (!key) return 0;
+  return Array.from(key).reduce((sum, char) => sum + char.charCodeAt(0), 0);
+};
+
+/**
+ * Encodes text to emojis and generates a shareable token.
  */
 export const encodeMessage = (text, themeId = 'random', key = '') => {
-  const theme = CIPHER_THEMES[themeId] || CIPHER_THEMES.random;
-  const emojiMap = Array.from(theme.map);
+  const keyVal = getKeyValue(key);
+  // Add validation marker to the beginning of the text to detect correct key on decode
+  const textWithMarker = VALIDATION_MARKER + text;
+  const data = Array.from(textWithMarker).map(char => char.charCodeAt(0) + keyVal);
 
-  return text.split('').map((char, index) => {
-    let charIndex = CHAR_SET.indexOf(char);
-    if (charIndex === -1) return char; // Keep unknown chars as is
+  // Create emoji string for display (base it on the data length)
+  const emojiString = data.map((_, i) => getThemeEmoji(themeId, i)).join('');
 
-    // Simple XOR-style shift with key
-    if (key) {
-      const keyShift = key.charCodeAt(index % key.length);
-      charIndex = (charIndex + keyShift) % CHAR_SET.length;
-    }
+  // Create the shareable token (base64 encoded data)
+  const payload = {
+    d: data,
+    t: themeId,
+    k: !!key
+  };
+  const token = btoa(JSON.stringify(payload));
+  const fullString = `${emojiString} ${METADATA_PREFIX}${token}`;
 
-    // Map char index to emoji map index
-    const emojiIndex = charIndex % emojiMap.length;
-    return emojiMap[emojiIndex];
-  }).join('');
+  return {
+    emojiString,
+    fullString,
+    data,
+    theme: themeId,
+    encrypted: !!key
+  };
 };
 
 /**
- * Decodes emojis back to text using a theme and optional key.
- * NOTE: Since multiple chars can map to the same emoji in small themes,
- * this is a fun "cipher" rather than a mathematically perfect one.
- * To improve accuracy, we'd need a 1:1 mapping.
+ * Decodes emojis or tokens back to original text.
+ * Returns { success: true, text: ... } or { success: false, error: 'WRONG_KEY' }
  */
-export const decodeMessage = (emojiText, themeId = 'random', key = '') => {
-  const theme = CIPHER_THEMES[themeId] || CIPHER_THEMES.random;
-  const emojiMap = Array.from(theme.map);
-  const emojis = Array.from(emojiText);
+export const decodeMessage = (input, key = '') => {
+  let data = null;
+  const keyVal = getKeyValue(key);
 
-  return emojis.map((emoji, index) => {
-    const emojiIndex = emojiMap.indexOf(emoji);
-    if (emojiIndex === -1) return emoji;
-
-    // We can't perfectly reverse the modulo without more info,
-    // but for this "fun" version, we'll use the first occurrence.
-    let charIndex = emojiIndex;
-
-    if (key) {
-      const keyShift = key.charCodeAt(index % key.length);
-      charIndex = (charIndex - keyShift) % CHAR_SET.length;
-      if (charIndex < 0) charIndex += CHAR_SET.length;
+  // 1. Check for metadata token
+  if (input.includes(METADATA_PREFIX)) {
+    try {
+      const token = input.split(METADATA_PREFIX)[1].trim();
+      const payload = JSON.parse(atob(token));
+      data = payload.d;
+    } catch (e) {
+      console.error("Failed to parse metadata token", e);
     }
+  }
 
-    return CHAR_SET[charIndex] || '?';
-  }).join('');
+  // 2. Fallback: Search in localStorage if token not found or failed
+  if (!data) {
+    try {
+      const stored = JSON.parse(localStorage.getItem('emoji_secret_messages') || '{}');
+      const emojiPart = input.split(METADATA_PREFIX)[0].trim();
+      const entry = Object.values(stored).find(v => v.emojiString === emojiPart);
+      if (entry) {
+        data = entry.encodedData;
+      }
+    } catch (e) {
+      // localStorage might not be available in all contexts
+    }
+  }
+
+  if (!data) return { success: false, error: 'NOT_FOUND' };
+
+  // 3. Reverse the cipher
+  try {
+    const decodedWithMarker = data.map(val => String.fromCharCode(val - keyVal)).join('');
+
+    // Check for validation marker
+    if (decodedWithMarker.startsWith(VALIDATION_MARKER)) {
+      return {
+        success: true,
+        text: decodedWithMarker.slice(VALIDATION_MARKER.length)
+      };
+    } else {
+      return { success: false, error: 'WRONG_KEY' };
+    }
+  } catch (e) {
+    return { success: false, error: 'DECODE_ERROR' };
+  }
 };
