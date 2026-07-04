@@ -4,8 +4,7 @@ import { useSecretMessage } from '../../../hooks/useSecretMessage';
 import EmojiEncoder from './EmojiEncoder';
 import EmojiDecoder from './EmojiDecoder';
 import EmojiPasswordGenerator from './EmojiPasswordGenerator';
-import SkeuoButton from '../../common/SkeuoButton';
-import { Lock, Unlock, ShieldCheck, Info } from 'lucide-react';
+import { ShieldCheck, Info, Lock, Unlock } from 'lucide-react';
 
 const SecretLab = () => {
   const {
@@ -22,7 +21,7 @@ const SecretLab = () => {
     handleDecode,
     handleGeneratePassword,
     passwordStrength,
-    saveToSecretVault,
+    passwordLabel,
     reset,
     copyToClipboard,
     isCopied,
@@ -43,7 +42,6 @@ const SecretLab = () => {
             onEncode={handleEncode}
             onReset={reset}
             onCopy={copyToClipboard}
-            onSave={saveToSecretVault}
             isCopied={isCopied}
           />
         );
@@ -67,6 +65,7 @@ const SecretLab = () => {
             onGenerate={handleGeneratePassword}
             output={output}
             strength={passwordStrength}
+            label={passwordLabel}
             onCopy={copyToClipboard}
             isCopied={isCopied}
           />
@@ -171,7 +170,7 @@ const SecretLab = () => {
         <div className="flex items-center gap-2 text-stone-100 font-bold mb-2 uppercase tracking-widest">
           <Info size={14} /> Intelligence Briefing
         </div>
-        The Secret Lab uses a character-to-emoji mapping system. While "Random" and "Space" themes provide broad coverage, some themes may result in slightly lossy decoding if the input contains rare special characters. For critical mission data, use the "Secret Key" feature to double-scramble your payload.
+        The Secret Lab uses a character-to-emoji mapping system. Clean sharing uses local storage to match emojis with data. Cross-device sharing requires exporting the full secret code. All messages are encrypted locally and never leave your browser.
       </div>
     </div>
   );

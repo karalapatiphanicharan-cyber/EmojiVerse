@@ -54,11 +54,13 @@ export const encodeMessage = (text, themeId = 'random', key = '') => {
 export const decodeMessage = (input, key = '') => {
   let data = null;
   const keyVal = getKeyValue(key);
+  const cleanInput = input.trim();
 
   // 1. Check for metadata token
-  if (input.includes(METADATA_PREFIX)) {
+  if (cleanInput.includes(METADATA_PREFIX)) {
     try {
-      const token = input.split(METADATA_PREFIX)[1].trim();
+      const parts = cleanInput.split(METADATA_PREFIX);
+      const token = parts[1].trim();
       const payload = JSON.parse(atob(token));
       data = payload.d;
     } catch (e) {
@@ -69,14 +71,32 @@ export const decodeMessage = (input, key = '') => {
   // 2. Fallback: Search in localStorage if token not found or failed
   if (!data) {
     try {
-      const stored = JSON.parse(localStorage.getItem('emoji_secret_messages') || '{}');
-      const emojiPart = input.split(METADATA_PREFIX)[0].trim();
-      const entry = Object.values(stored).find(v => v.emojiString === emojiPart);
+      // Use emoji_secret_store as the primary storage now
+      const stored = JSON.parse(localStorage.getItem('emoji_secret_store') || '{}');
+
+      // The input might contain just emojis or emojis + other text.
+      // We'll try the whole input and also try to extract just the emoji part.
+      const entry = stored[cleanInput];
       if (entry) {
-        data = entry.encodedData;
+        data = entry.encryptedData;
+      } else {
+        // Legacy or if there's extra whitespace we missed
+        const emojiPart = cleanInput.split(' ')[0];
+        if (stored[emojiPart]) {
+          data = stored[emojiPart].encryptedData;
+        }
+      }
+
+      // Check legacy storage if still not found
+      if (!data) {
+        const legacyStored = JSON.parse(localStorage.getItem('emoji_secret_messages') || '{}');
+        const legacyEntry = Object.values(legacyStored).find(v => v.emojiString === cleanInput);
+        if (legacyEntry) {
+          data = legacyEntry.encodedData;
+        }
       }
     } catch (e) {
-      // localStorage might not be available in all contexts
+      console.error("Storage lookup failed", e);
     }
   }
 

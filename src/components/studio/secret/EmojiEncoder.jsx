@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import SkeuoButton from '../../common/SkeuoButton';
-import { Lock, Key, Copy, RotateCcw } from 'lucide-react';
+import { Lock, Key, Copy, RotateCcw, Share2 } from 'lucide-react';
 
 const EmojiEncoder = ({
   inputText,
@@ -76,20 +76,29 @@ const EmojiEncoder = ({
         >
           <label className="text-sm font-bold text-stone-600 block px-1">Hidden Emoji Result</label>
           <div className="p-6 bg-stone-100 rounded-2xl border-4 border-dashed border-stone-300 relative group overflow-hidden">
-            <p className="text-2xl break-all tracking-widest">{displayEmojis}</p>
+            <p className="text-2xl break-all tracking-widest text-center">{displayEmojis}</p>
 
-            <div className="mt-6 flex gap-3">
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <SkeuoButton
-                onClick={() => onCopy(fullShareableString)}
+                onClick={() => onCopy(displayEmojis, "Copied 🔥")}
                 className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm
                            ${isCopied ? 'bg-green-400 text-green-900' : 'bg-stone-200 text-stone-700'}`}
               >
                 <Copy size={16} />
-                {isCopied ? 'Copied with Metadata!' : 'Copy Secret'}
+                {isCopied ? 'Copied!' : 'Copy Emojis'}
+              </SkeuoButton>
+
+              <SkeuoButton
+                onClick={() => onCopy(fullShareableString, "Exported Secret Code 🔐")}
+                className="flex-1 flex items-center justify-center gap-2 py-2 text-sm bg-stone-800 text-stone-100"
+              >
+                <Share2 size={16} />
+                Export Secret Code
               </SkeuoButton>
             </div>
-            <p className="mt-2 text-[10px] text-stone-400 font-medium italic text-center">
-              Copies emojis + hidden token for decryption 🔑
+            <p className="mt-4 text-[10px] text-stone-400 font-medium italic text-center leading-tight">
+              "Copy Emojis" for clean sharing (requires same device) <br/>
+              "Export Secret Code" for cross-device support
             </p>
           </div>
         </motion.div>

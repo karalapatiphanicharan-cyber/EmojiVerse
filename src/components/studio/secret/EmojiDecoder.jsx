@@ -71,8 +71,8 @@ const EmojiDecoder = ({
           <label className="text-sm font-bold text-stone-600 block px-1">Decoded Result</label>
           <div className="p-6 bg-white rounded-2xl border-2 border-indigo-200 shadow-xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-indigo-400" />
-            <p className="text-xl font-medium text-indigo-900 break-all font-mono italic">
-              "{output}"
+            <p className="text-xl font-medium text-indigo-900 break-all font-mono">
+              {output}
             </p>
             <div className="mt-4 flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-widest">
               <Unlock size={12} />

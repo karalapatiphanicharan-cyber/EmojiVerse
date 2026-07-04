@@ -3,45 +3,34 @@
  * Handles persistence of secret messages in the new format.
  */
 
-const STORAGE_KEY = 'emoji_secret_messages';
+const STORAGE_KEY = 'emoji_secret_store';
 
 /**
  * Saves a secret message to localStorage.
- * Messages are indexed by ID, but we can also look them up by emoji string.
+ * Messages are indexed by emoji string for easy lookup.
  */
 export const saveSecretMessage = (encodedObj) => {
   const { emojiString, data, theme, encrypted } = encodedObj;
 
-  const id = crypto.randomUUID();
   const secretData = {
-    id,
-    emojiString,
-    encodedData: data,
+    encryptedData: data,
     theme,
     hasKey: encrypted,
     date: new Date().toISOString()
   };
 
   const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-  stored[id] = secretData;
+  // Use emoji string as the key for easy lookup during decoding
+  stored[emojiString] = secretData;
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
-  return id;
+  return emojiString;
 };
 
 /**
- * Retrieves a secret message by its ID.
+ * Retrieves a secret message by its emoji string.
  */
-export const getSecretMessage = (id) => {
+export const getSecretMessageByEmoji = (emojiString) => {
   const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-  return stored[id] || null;
-};
-
-/**
- * Generates a share link for a secret message.
- * (Future proofing, not strictly required for current logic)
- */
-export const generateShareLink = (id) => {
-  const baseUrl = window.location.origin;
-  return `${baseUrl}/secret/message/${id}`;
+  return stored[emojiString] || null;
 };

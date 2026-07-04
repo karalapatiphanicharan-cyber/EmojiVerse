@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { encodeMessage, decodeMessage } from '../utils/emojiCipher.js';
 import { themes } from '../utils/emojiThemes.js';
-import { generateEmojiPassword, calculateStrength } from '../utils/passwordGenerator.js';
+import { generateEmojiPassword, calculateStrength, calculateStrengthScore } from '../utils/passwordGenerator.js';
 import { saveSecretMessage } from '../utils/secretStorage.js';
 import { useToast } from '../context/ToastContext.jsx';
 
@@ -13,8 +13,9 @@ export const useSecretMessage = () => {
   const [theme, setTheme] = useState('random');
   const [inputText, setInputText] = useState('');
   const [secretKey, setSecretKey] = useState('');
-  const [output, setOutput] = useState(''); // This will store { display, full } or just string
-  const [passwordStrength, setPasswordStrength] = useState(0);
+  const [output, setOutput] = useState(null); // Stores { display, full } for encode or string for others
+  const [passwordStrength, setPasswordStrength] = useState(0); // Numeric score
+  const [passwordLabel, setPasswordLabel] = useState(''); // Text label (Strong, etc)
   const [isCopied, setIsCopied] = useState(false);
   const { showToast } = useToast();
 
@@ -23,15 +24,17 @@ export const useSecretMessage = () => {
     if (!inputText) return;
     const encoded = encodeMessage(inputText, theme, secretKey);
 
-    // Save to storage immediately as requested
+    // Save to storage
     saveSecretMessage(encoded);
 
-    // Set output to show display emojis, but keep full string for copying
+    // Set output to show display emojis, but keep full string for exporting
     setOutput({
       display: encoded.emojiString,
       full: encoded.fullString
     });
-  }, [inputText, theme, secretKey]);
+
+    showToast("Encoded successfully ✨");
+  }, [inputText, theme, secretKey, showToast]);
 
   // Handle decoding
   const handleDecode = useCallback(() => {
@@ -40,6 +43,7 @@ export const useSecretMessage = () => {
 
     if (result.success) {
       setOutput(result.text);
+      showToast("Decoded successfully 🔓");
     } else {
       if (result.error === 'WRONG_KEY') {
         showToast("Wrong secret key 🔐");
@@ -52,24 +56,29 @@ export const useSecretMessage = () => {
 
   // Handle password generation
   const handleGeneratePassword = useCallback((userName) => {
-    const pwd = generateEmojiPassword(userName || 'User', theme === 'random' ? 'hacker' : theme);
+    const pwd = generateEmojiPassword(userName, theme === 'random' ? 'hacker' : theme);
     setOutput(pwd);
-    setPasswordStrength(calculateStrength(pwd));
+    setPasswordStrength(calculateStrengthScore(pwd));
+    setPasswordLabel(calculateStrength(pwd));
   }, [theme]);
 
   // Reset state
-  const reset = () => {
+  const reset = useCallback(() => {
     setInputText('');
-    setOutput('');
+    setOutput(null);
     setSecretKey('');
     setIsCopied(false);
-  };
+    setPasswordStrength(0);
+    setPasswordLabel('');
+  }, []);
 
   // Copy to clipboard helper
-  const copyToClipboard = async (text) => {
+  const copyToClipboard = async (text, toastMsg = "Copied 🔥") => {
+    if (!text) return false;
     try {
       await navigator.clipboard.writeText(text);
       setIsCopied(true);
+      showToast(toastMsg);
       setTimeout(() => setIsCopied(false), 2000);
       return true;
     } catch (err) {
@@ -100,6 +109,7 @@ export const useSecretMessage = () => {
     handleDecode,
     handleGeneratePassword,
     passwordStrength,
+    passwordLabel,
     reset,
     copyToClipboard,
     isCopied,
