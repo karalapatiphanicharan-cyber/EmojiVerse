@@ -26,7 +26,7 @@ export const roadmap = [
   {
     phase: "Phase 5",
     title: "Secret Emoji Messages",
-    description: "Secure, emoji-based communication protocol for the EmojiVerse.",
-    status: "planned"
+    description: "Secure, emoji-based communication protocol for the EmojiVerse, featuring themed ciphers and secure password generation.",
+    status: "completed"
   }
 ];

@@ -24,7 +24,11 @@ import ConversionControls from '../components/converter/ConversionControls';
 import EmojiPalette from '../components/converter/EmojiPalette';
 import { useImageConverter } from '../hooks/useImageConverter';
 import { downloadConversionAsPng, downloadConversionAsTxt, copyToClipboard } from '../utils/imageExport';
-import { Download, Copy, Save, Trash2, Share2 } from 'lucide-react';
+
+// Phase 5 Components
+import SecretLab from '../components/studio/secret/SecretLab';
+
+import { Download, Copy, Save, Trash2, Share2, Sparkles } from 'lucide-react';
 
 import { generateMultiEmojiArt } from '../utils/multiEmojiGenerator';
 import { applyFontStyle } from '../utils/fontStyles';
@@ -33,7 +37,7 @@ import { useEmojiPainter } from '../hooks/useEmojiPainter';
 import { saveCreation } from '../utils/saveManager';
 
 const Studio = () => {
-  const [activeTab, setActiveTab] = useState('text'); // 'text', 'painter', 'animator', or 'converter'
+  const [activeTab, setActiveTab] = useState('text'); // 'text', 'painter', 'animator', 'converter', 'secret'
   const { showToast } = useToast();
 
   // Settings State
@@ -185,12 +189,15 @@ const Studio = () => {
       <div className="order-1 lg:order-1 px-4 lg:px-0">
         <ToolPanel>
           <div className="space-y-8">
-            <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl shadow-inner">
-              {['text', 'painter', 'animator', 'converter'].map((tab) => (
+            <div className="flex flex-wrap gap-2 p-1 bg-gray-100 rounded-2xl shadow-inner">
+              {['text', 'painter', 'animator', 'converter', 'secret'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`flex-1 py-2 text-[10px] font-black uppercase rounded-xl transition-all ${activeTab === tab ? 'bg-white shadow-skeuo-raised text-gray-900' : 'text-gray-400'}`}
+                  className={`flex-1 py-2 px-1 text-[9px] font-black uppercase rounded-xl transition-all
+                             ${activeTab === tab
+                               ? 'bg-white shadow-skeuo-raised text-gray-900'
+                               : 'text-gray-400 hover:text-gray-500'}`}
                 >
                   {tab}
                 </button>
@@ -203,6 +210,16 @@ const Studio = () => {
 
             {activeTab === 'converter' ? (
               <ImageUploader onUpload={converter.handleUpload} currentImage={converter.originalUrl} />
+            ) : activeTab === 'secret' ? (
+              <div className="p-6 bg-stone-50 rounded-3xl border-2 border-stone-200 shadow-inner text-center">
+                <Sparkles className="text-amber-400 mx-auto mb-3" size={32} />
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-stone-400">
+                  Secret Mode Active
+                </h4>
+                <p className="text-[9px] text-stone-400 mt-2 italic">
+                  Tools restricted during stealth operation.
+                </p>
+              </div>
             ) : (
               <EmojiPicker
                 selectedEmoji={selectedEmojis[selectedEmojis.length - 1]}
@@ -232,7 +249,7 @@ const Studio = () => {
         </ToolPanel>
       </div>
 
-      <main className="flex-1 p-4 md:p-8 lg:p-12 overflow-x-hidden order-2 lg:order-2">
+      <main className={`flex-1 p-4 md:p-8 lg:p-12 overflow-x-hidden order-2 lg:order-2 ${activeTab === 'secret' ? 'bg-[#f5f3ef]' : ''}`}>
         <div className="max-w-4xl mx-auto space-y-8">
           {activeTab === 'text' && (
             <>
@@ -351,7 +368,11 @@ const Studio = () => {
             </div>
           )}
 
-          {activeTab !== 'animator' && activeTab !== 'converter' && (
+          {activeTab === 'secret' && (
+            <SecretLab />
+          )}
+
+          {activeTab !== 'animator' && activeTab !== 'converter' && activeTab !== 'secret' && (
             <ExportControls
               art={activeTab === 'text' ? textHistory.state : paintHistory.state}
               onClear={activeTab === 'text' ? () => textHistory.reset([]) : () => paintHistory.reset(emptyGrid)}
@@ -376,7 +397,7 @@ const Studio = () => {
               <PaintControls brushSize={painter.brushSize} setBrushSize={painter.setBrushSize} />
             )}
 
-            {activeTab === 'converter' ? (
+            {activeTab === 'converter' && (
               <>
                 <ConversionControls settings={converter.settings} setSettings={converter.setSettings} />
                 <div className="h-px bg-gray-100" />
@@ -385,7 +406,38 @@ const Studio = () => {
                   onSelect={(p) => converter.setSettings({ ...converter.settings, palette: p })}
                 />
               </>
-            ) : (
+            )}
+
+            {activeTab === 'secret' && (
+               <div className="p-6 bg-stone-800 rounded-3xl border-b-8 border-stone-950 shadow-2xl space-y-4">
+                  <div className="h-2 w-12 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                  <h4 className="text-xs font-black text-stone-400 uppercase tracking-[0.2em]">
+                    Signal Jammer
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="h-1 bg-stone-700 w-full rounded-full overflow-hidden">
+                      <motion.div
+                        animate={{ x: [-100, 100] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        className="h-full w-1/3 bg-amber-400/30"
+                      />
+                    </div>
+                    <div className="h-1 bg-stone-700 w-full rounded-full overflow-hidden">
+                      <motion.div
+                        animate={{ x: [100, -100] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        className="h-full w-1/4 bg-indigo-400/30"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[8px] text-stone-500 font-bold leading-tight">
+                    ENCRYPTION STATUS: <span className="text-emerald-500">ACTIVE</span><br/>
+                    LOCATION: <span className="text-amber-500">ENCRYPTED</span>
+                  </p>
+               </div>
+            )}
+
+            {activeTab !== 'converter' && activeTab !== 'secret' && (
               <StyleControls
                 settings={settings}
                 setSettings={setSettings}
