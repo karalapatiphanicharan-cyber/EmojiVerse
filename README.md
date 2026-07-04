@@ -1,6 +1,5 @@
 <div align="center">
 
-  <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Artist%20Palette.png" alt="EmojiVerse Logo" width="120" />
 
   # 🎨 EmojiVerse
 
