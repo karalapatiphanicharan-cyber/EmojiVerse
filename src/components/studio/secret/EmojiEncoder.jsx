@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import SkeuoButton from '../../common/SkeuoButton';
-import { Lock, Unlock, Key, Copy, RotateCcw, Save } from 'lucide-react';
+import { Lock, Key, Copy, RotateCcw } from 'lucide-react';
 
 const EmojiEncoder = ({
   inputText,
@@ -12,9 +12,12 @@ const EmojiEncoder = ({
   onEncode,
   onReset,
   onCopy,
-  onSave,
   isCopied
 }) => {
+  // Extract display and full string from output object
+  const displayEmojis = output?.display || '';
+  const fullShareableString = output?.full || '';
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -65,7 +68,7 @@ const EmojiEncoder = ({
         </SkeuoButton>
       </div>
 
-      {output && (
+      {displayEmojis && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -73,24 +76,21 @@ const EmojiEncoder = ({
         >
           <label className="text-sm font-bold text-stone-600 block px-1">Hidden Emoji Result</label>
           <div className="p-6 bg-stone-100 rounded-2xl border-4 border-dashed border-stone-300 relative group overflow-hidden">
-            <p className="text-2xl break-all tracking-widest">{output}</p>
+            <p className="text-2xl break-all tracking-widest">{displayEmojis}</p>
 
             <div className="mt-6 flex gap-3">
               <SkeuoButton
-                onClick={() => onCopy(output)}
+                onClick={() => onCopy(fullShareableString)}
                 className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm
                            ${isCopied ? 'bg-green-400 text-green-900' : 'bg-stone-200 text-stone-700'}`}
               >
                 <Copy size={16} />
-                {isCopied ? 'Copied!' : 'Copy Secret'}
-              </SkeuoButton>
-              <SkeuoButton
-                onClick={onSave}
-                className="bg-blue-400 text-blue-900 px-4 py-2"
-              >
-                <Save size={16} />
+                {isCopied ? 'Copied with Metadata!' : 'Copy Secret'}
               </SkeuoButton>
             </div>
+            <p className="mt-2 text-[10px] text-stone-400 font-medium italic text-center">
+              Copies emojis + hidden token for decryption 🔑
+            </p>
           </div>
         </motion.div>
       )}
